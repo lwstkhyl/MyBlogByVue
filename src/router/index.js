@@ -6,17 +6,28 @@ const originalPush = VueRouter.prototype.push
 VueRouter.prototype.push = function push(location) {
     return originalPush.call(this, location).catch(err => err)
 }
-import MyLogin from '../views/MyLogin.vue'
-import MyMain from '../views/MyMain.vue'
+import FileManager from '../components/FileManager.vue'
+import AvatarCreator from "../components/AvatarCreator.vue"
+import MyHome from "../components/MyHome.vue"
 export default new VueRouter({
     routes: [
         {
+            name: 'home',
+            path: '/',
+            component: MyHome,
+        },
+        {
             name: 'file',
             path: '/file',
-            component: MyMain,
+            component: FileManager,
             props: route => ({
                 currentPath: route.query.path || ''
             })
+        },
+        {
+            name: 'avatar',
+            path: '/avatar',
+            component: AvatarCreator,
         },
     ]
 })

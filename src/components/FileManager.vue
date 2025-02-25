@@ -230,7 +230,6 @@ import {formatSize, formatTime, formatSpeed, formatTime_hms} from '../utils/form
 
 export default {
   name: 'FileManager',
-  // components: { FileUpload,  },
   props: ['currentPath'],
   data() {
     return {

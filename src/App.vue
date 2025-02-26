@@ -320,7 +320,7 @@ input[aria-hidden="true"] {
 }
 /* 头部样式 */
 .header {
-  padding: 0;
+  padding: 0 20px;
   background-color: #FFF;
   height: 70px !important;
   transition: margin-left 0.3s;

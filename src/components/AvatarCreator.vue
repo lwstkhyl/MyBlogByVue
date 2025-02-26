@@ -2,7 +2,19 @@
   <div class="container">
     <!-- 左侧操作区域 -->
     <div class="left-panel">
-      <input type="file" @change="handleFileUpload" accept="image/*">
+      <div class="input-wrapper">
+        <div>
+          <input 
+            type="file" 
+            id="file" 
+            class="input-file"
+            @change="handleFileUpload" 
+            accept="image/*" 
+          >
+          <label for="file" class="el-button">选择图片</label>
+        </div>
+        <p class="image-name">{{imageName}}</p>
+      </div>
       <div class="image-container" ref="imageContainer">
         <img :src="imageUrl" ref="image" @load="initCropBox">
         <div class="crop-box" :style="cropStyle" @mousedown.prevent="startDrag">
@@ -13,27 +25,36 @@
 
     <!-- 右侧预览区域 -->
     <div class="right-panel">
-      <div class="preview-section">
+      <div class="preview-box-wrapper">
         <div class="preview-box">
           <canvas ref="previewCanvas"></canvas>
         </div>
-        <div class="preview-box-round">
-          <canvas ref="previewCanvasRound"></canvas>
+        <div class="btn-wrapper">
+          <button class="download-btn" v-show="imageUrl" @click="downloadImage(false)" :disabled="!imageUrl">下载</button>
         </div>
       </div>
-      <button class="download-btn" @click="downloadImage(false)" :disabled="!imageUrl">下载正方形裁剪图片</button>
-      <button class="download-btn" @click="downloadImage(true)" :disabled="!imageUrl">下载圆形裁剪图片</button>
+      <div class="preview-box-wrapper">
+        <div class="preview-box-round preview-box">
+          <canvas ref="previewCanvasRound"></canvas>
+        </div>
+        <div class="btn-wrapper">
+          <button class="download-btn" v-show="imageUrl" @click="downloadImage(true)" :disabled="!imageUrl">下载</button>
+        </div>
+      </div>
     </div>
   </div>
 </template>
 
 <script>
+import {mapState, mapGetters, mapActions, mapMutations} from 'vuex';
+
 export default {
   name: 'AvatarCreator',
   data() {
     return {
       canvasSize: 400,
       imageUrl: '',
+      imageName: '',
       crop: {
         x: 0,
         y: 0,
@@ -47,8 +68,8 @@ export default {
       startY: 0
     }
   },
-
   computed: {
+    ...mapState('base', ['isMobileAgent', ]),
     cropStyle() {
       return {
         left: `${this.crop.x}px`,
@@ -56,15 +77,14 @@ export default {
         width: `${this.crop.size}px`,
         height: `${this.crop.size}px`
       }
-    }
+    },
   },
-
   methods: {
     // 处理文件上传
     handleFileUpload(e) {
       const file = e.target.files[0];
       if (!file) return;
-      
+      this.imageName = file.name;
       this.imageUrl = URL.createObjectURL(file);
     },
 
@@ -269,6 +289,9 @@ export default {
   },
 
   mounted() {
+    if(this.isMobileAgent){
+      this.$message.error('手机端可能无法正常使用该功能')
+    }
     window.addEventListener('resize', this.initCropBox);
   },
 
@@ -288,13 +311,35 @@ export default {
   padding: 20px;
 }
 
+.left-panel .input-wrapper{
+  display: flex;
+  align-items: center;
+}
+
+.left-panel .input-file{
+  /* 隐藏默认选择按钮 */
+  width: 0.1px; 
+  height: 0.1px; 
+  opacity: 0; 
+  overflow: hidden; 
+  position: absolute; 
+  z-index: -1;
+}
+
+.left-panel .image-name{
+  font-size: 12px;
+  color: #909399;
+  margin-left: 15px;
+}
+
 .right-panel {
-  width: 300px;
+  width: 350px;
   padding: 20px;
   border-left: 1px solid #ccc;
   display: flex;
   flex-direction: column;
   align-items: center;
+  justify-content: space-around;
 }
 
 .image-container {
@@ -325,6 +370,10 @@ export default {
   cursor: nwse-resize;
 }
 
+.preview-box-wrapper{
+  display: flex;
+}
+
 .preview-box {
   width: 200px;
   height: 200px;
@@ -336,22 +385,20 @@ export default {
   width: 100%;
   height: 100%;
 }
-.preview-section {
-  width: 100%;
-}
 
 .preview-box-round {
-  width: 200px;
-  height: 200px;
-  border: 1px solid #ccc;
-  margin-top: 20px;
   border-radius: 50%;
-  overflow: hidden;
 }
 
 .preview-box-round canvas {
   width: 100%;
   height: 100%;
+}
+
+.btn-wrapper{
+  display: flex;
+  align-items: center;
+  margin-left: 20px;
 }
 
 .download-btn {

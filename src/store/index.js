@@ -3,6 +3,13 @@ import Vuex from 'vuex';
 
 Vue.use(Vuex);
 
+const base = {
+    namespaced: true,
+    state: {
+        isMobileAgent: /Mobi|Android|iPhone/i.test(navigator.userAgent),
+    },
+}
+
 const auth = {
     namespaced: true,
     state: {
@@ -49,5 +56,5 @@ const pan = {
     }
 }
 export default new Vuex.Store({
-    modules: { auth, pan }
+    modules: { auth, pan, base, }
 });

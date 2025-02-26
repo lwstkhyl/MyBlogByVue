@@ -1,12 +1,14 @@
 <template>
   <div id="app">
     <!-- 遮罩层 -->
-    <div 
-      v-show="showSidebar && !isDesktop"
-      class="mask"
-      @click="closeSidebar"
-      @mouseover="hover_sidebar"
-    ></div>
+    <transition name="showMask">
+      <div 
+        v-show="showSidebar && !isDesktop"
+        class="mask"
+        @click="showSidebar = false"
+        @mouseover="hover_sidebar"
+      ></div>
+    </transition>
     <!-- 固定侧边栏切换按钮 -->
     <i 
       @click="toggleSidebar" 
@@ -48,28 +50,6 @@
         </el-form-item>
       </el-form>
     </el-dialog>
-    <!-- 顶部导航栏 -->
-    <el-header class="header" v-show="!isMobile">
-      <div :class="['header-content', { 'container': isDesktop }]">
-        <!-- 顶部导航栏内容 -->
-        <el-menu
-          :default-active="$route.path"
-          @select="handleSelect"
-          menu-trigger="hover"
-          class="el-menu"
-          mode="horizontal"
-        >
-          <el-menu-item index="/">首页</el-menu-item>
-          <el-menu-item index="/file">我的网盘</el-menu-item>
-          <el-menu-item index="/avatar">头像编辑</el-menu-item>
-          <!-- 右侧用户信息 -->
-          <el-menu-item class="right-section" @click="clickUsername">
-            <el-avatar :size="36" :src="userAvatar" v-show="userAvatar"></el-avatar>
-            <span class="user-name">{{ userName }}{{isLoggedIn ? "（已登录）" : ""}}</span>
-          </el-menu-item>
-        </el-menu>
-      </div>
-    </el-header>
     <!-- 侧边栏 -->
     <el-aside 
       class="sidebar"
@@ -104,13 +84,48 @@
         </el-menu>
       </div>
     </el-aside>
-    <!-- 页面内容 -->
+    <!-- 页面主体 -->
     <div 
       class="content-wrapper"
       :style="{
         'margin-left': `${mainLeft}px`
       }"
     >
+      <!-- 顶部导航栏 -->
+      <el-header 
+        class="header" 
+        v-show="!isMobile"
+      >
+        <div :class="['header-content', { 'container': isDesktop }]">
+          <!-- 用户信息 -->
+          <div 
+            class="userInfo" 
+            @click="clickUsername" 
+            v-longpress="handleLog"
+          >
+            <el-avatar 
+              v-show="userAvatar" 
+              :size="36" 
+              shape="square"
+              :src="userAvatar" 
+            ></el-avatar>
+            <span class="user-name">{{isLoggedIn ? `${userName}（已登录）` : `${userName}`}}</span>
+          </div>
+          <!-- 顶部导航栏内容 -->
+          <el-menu
+            :default-active="$route.path"
+            @select="handleSelect"
+            menu-trigger="hover"
+            class="el-menu"
+            mode="horizontal"
+          >
+            <el-menu-item index="/">首页</el-menu-item>
+            <el-menu-item index="/file">我的网盘</el-menu-item>
+            <el-menu-item index="/avatar">头像编辑</el-menu-item>
+          </el-menu>
+        </div>
+      </el-header>
+      <!-- 页面内容 -->
       <main 
         class="main-content"
         :class="[{ 
@@ -146,9 +161,10 @@ export default {
       isDesktop: true, //是否宽屏
       isMobile: false, //是否窄屏
       isKeydown: false, //是否按下shift/CTRL键（按下同时点击头像用户名登录）
-      visible: false, //登录弹窗相关数据
-      loading: false,
-      form: {
+      timeOutEvent: 0, //记录触摸时长（长按头像用户名登录）
+      visible: false, //登录弹窗是否弹出
+      loading: false, //是否正在登录状态
+      form: { //登录的表单数据
         username: '',
         password: ''
       }
@@ -156,6 +172,7 @@ export default {
   },
   computed:{
     ...mapState('auth', {isLoggedIn: 'token'}),
+    ...mapState('base', ['isMobileAgent', ]),
   },
   mounted(){
     window.addEventListener('keydown', e => {
@@ -173,22 +190,25 @@ export default {
   },
   methods: {
     ...mapMutations('auth', ['LOGOUT', 'SET_TOKEN', ]),
+    handleLog(){ //根据是否处于登录状态，弹出登录/退出登录窗口
+      if(!this.isLoggedIn) this.visible = true;
+      else {
+        this.$confirm('退出登录?', '提示', {
+          confirmButtonText: '确定',
+          cancelButtonText: '取消',
+          type: 'warning'
+        }).then(this.handleLogout).catch(()=>{});
+      }
+    },
     clickUsername(){
       if(!this.isKeydown && this.userURL) {
         window.open(this.userURL);
       }
-      else{
-        if(!this.isLoggedIn) this.visible = true;
-        else {
-          this.$confirm('退出登录?', '提示', {
-            confirmButtonText: '确定',
-            cancelButtonText: '取消',
-            type: 'warning'
-          }).then(this.logout).catch(()=>{});
-        }
+      else {
+        this.handleLog();
       }
     },
-    async handleLogin() {
+    async handleLogin() { //登录
       if(!(this.form.username && this.form.password)) return this.$message.error('输入不能为空');
       try {
         this.loading = true;
@@ -206,7 +226,7 @@ export default {
         this.loading = false;
       }
     },
-    async logout() {
+    async handleLogout() { //退出登录
       this.LOGOUT();
       // window.location.reload();
     },
@@ -217,7 +237,7 @@ export default {
         path: key,
       });
     },
-    toggleSidebar() {
+    toggleSidebar() { //隐藏/显示侧面导航
       this.showSidebar = !this.showSidebar
       if(this.showSidebar) this.sidebarTop = this.$refs.SidebarBtn.offsetHeight;
       if(!this.showSidebar) this.mainLeft = 0;
@@ -232,19 +252,17 @@ export default {
         }
       }
     },
-    closeSidebar() {
-      this.showSidebar = false
-    },
-    handleResize() {
+    handleResize() { //页面尺寸变化
       const width = window.innerWidth
       this.isDesktop = width >= 1456
       // this.isMobile = width < 768
       this.isMobile = false
     },
-    hover_btn(){
+    hover_btn(){ //鼠标移至显示隐藏侧面导航的按钮
+      if(this.isMobileAgent) return;
       if(!this.showSidebar) this.toggleSidebar();
     },
-    hover_sidebar(){
+    hover_sidebar(){ //鼠标移至侧面导航
       if(this.showSidebar) this.toggleSidebar();
     }
   }
@@ -257,6 +275,7 @@ html{
 }
 body{
   padding-right: 0 !important; /* 防止弹窗出现时页面移动 */
+  margin: 0 !important;
 }
 /* 解决控制台多选框报错 */
 input[aria-hidden="true"] {
@@ -265,56 +284,80 @@ input[aria-hidden="true"] {
 .el-radio:focus:not(.is-focus):not(:active):not(.is-disabled) .el-radio__inner {
     box-shadow: none;
 }
-/* 基础样式 */
+/* 登录弹窗居中 */
+::v-deep .el-dialog{
+  display: flex;
+  flex-direction: column;
+  margin: 0 !important;
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%,-50%);
+  max-height: calc(100% - 30px);
+  max-width: calc(100% - 30px);
+}
+::v-deep  .el-dialog .el-dialog__body{
+  flex: 1;
+  overflow: auto;
+}
+.el-dialog__wrapper{
+  overflow: hidden;
+}
+/* 基础样式-版心居中 */
 .container {
   max-width: 1200px;
   margin: 0 auto;
+}
+/* 遮罩层动画 */
+.showMask-leave-to, .showMask-enter {
+  opacity: 0;
+}
+.showMask-enter-to, .showMask-leave {
+  opacity: 1
+}
+.showMask-enter-active, .showMask-leave-active {
+  transition: opacity 0.3s
 }
 /* 头部样式 */
 .header {
   padding: 0;
   background-color: #FFF;
+  height: 70px !important;
+  transition: margin-left 0.3s;
 }
 .header-content {
-  height: 60px;
+  display: flex;
+  justify-content: space-between;
+  height: 70px;
 }
 /* 顶部导航栏 */
 .header .el-menu{
   display: flex;
-  justify-content:end;
+  justify-content: end;
+  height: 100%;
+  line-height: 70px;
+  margin-right: 8px;
 }
 .header .el-menu li{
-  
+  font-size: 16px;
+  height: 70px;
+  line-height: 70px;
 }
 /* 用户名区域 */
-.header .right-section{
+.header .userInfo{
+  display: flex;
   cursor: pointer;
-  margin-left: 10% !important;
+  align-items: center;
+  margin-left: 28px;
+  /* 颜色和渐变 */
+  color: #909399;
+  transition: color .3s;
 }
-.header .right-section .el-avatar{
-  
+.header .userInfo .user-name{
+  margin-left: 8px;
 }
-.header .right-section user-name{
-
-}
-/* 登录弹窗居中 */
-::v-deep .el-dialog{
-    display: flex;
-    flex-direction: column;
-    margin:0 !important;
-    position:absolute;
-    top:50%;
-    left:50%;
-    transform:translate(-50%,-50%);
-    max-height:calc(100% - 30px);
-    max-width:calc(100% - 30px);
-}
-::v-deep  .el-dialog .el-dialog__body{
-    flex:1;
-    overflow: auto;
-}
-.el-dialog__wrapper{
-  overflow: hidden;
+.header .userInfo:hover{
+  color: #303133;
 }
 /* 侧边栏和侧边栏按钮 */
 .sidebar-toggle {
@@ -360,21 +403,23 @@ input[aria-hidden="true"] {
 }
 /* 响应式 */
 @media (max-width: 1456px) {
+  /* 宽度<1456px：取消版心居中 */
   .container {
     max-width: 100%;
     margin: 0;
     padding: 0 15px;
   }
-  
   .content-shift {
     margin-left: 0;
   }
 }
-
-/* @media (max-width: 768px) {
-  .header {
-    display: none;
+@media (max-width: 768px) {
+  /* 宽度<768px：隐藏顶部导航栏，只留用户名头像，且靠右 */
+  .header .el-menu {
+    display: none !important;
   }
-} */
-
+  .header .header-content {
+    justify-content: end;
+  }
+}
 </style>

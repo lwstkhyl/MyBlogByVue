@@ -136,7 +136,7 @@
         >
           <el-breadcrumb-item 
             v-show="loadingStates.fileList" 
-          ><p class="loading">加载中<i>...</i></p></el-breadcrumb-item>
+          ><p class="loading">加载中...</p></el-breadcrumb-item>
           <template v-if="!loadingStates.fileList">
             <el-breadcrumb-item 
               v-show="pathParts.length && !loadingStates.fileList" 

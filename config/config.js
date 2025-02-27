@@ -4,6 +4,6 @@ module.exports = {
     userURL: 'https://github.com/lwstkhyl/',
     repURL: 'https://github.com/lwstkhyl/MyBlogByVue',
     baseURL: 'http://localhost:3000',
-    timeout: 5000,
-
+    // baseURL: 'https://lwstkhyl.me',
+    timeout: 10000,
 }

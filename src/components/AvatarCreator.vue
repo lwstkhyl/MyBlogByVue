@@ -2,18 +2,30 @@
   <div class="container">
     <!-- 左侧操作区域 -->
     <div class="left-panel">
-      <div class="input-wrapper">
-        <div>
-          <input 
-            type="file" 
-            id="file" 
-            class="input-file"
-            @change="handleFileUpload" 
-            accept="image/*" 
-          >
-          <label for="file" class="el-button">选择图片</label>
+      <div style="display: flex;">
+        <div class="input-wrapper">
+          <!-- 重置选取框 -->
+          <el-button 
+            icon="el-icon-refresh" 
+            type="primary" plain
+            v-show="imageUrl"
+            @click="initCropBox"
+            style="margin-right:5px"
+          >重置选取框</el-button>
         </div>
-        <p class="image-name">{{imageName}}</p>
+        <div class="input-wrapper">
+          <div>
+            <input 
+              type="file" 
+              id="file" 
+              class="input-file"
+              @change="handleFileUpload" 
+              accept="image/*" 
+            >
+            <label for="file" class="el-button">选择图片</label>
+          </div>
+          <p class="image-name">{{imageName}}</p>
+        </div>
       </div>
       <div class="image-container" ref="imageContainer">
         <img :src="imageUrl" ref="image" @load="initCropBox">
@@ -91,6 +103,7 @@ export default {
     // 初始化裁剪框
     initCropBox() {
       const img = this.$refs.image;
+      if(!img) return;
       this.imageWidth = img.offsetWidth;
       this.imageHeight = img.offsetHeight;
       
@@ -292,12 +305,12 @@ export default {
     if(this.isMobileAgent){
       this.$message.error('手机端可能无法正常使用该功能')
     }
-    window.addEventListener('resize', this.initCropBox);
+    window.addEventListener('resize', ()=>{
+      if(this.$router.currentRoute.name === 'avatar')
+        this.initCropBox();
+    });
   },
 
-  beforeDestroy() {
-    window.removeEventListener('resize', this.initCropBox);
-  }
 }
 </script>
 
@@ -349,6 +362,7 @@ export default {
 }
 
 .image-container img {
+  width: 100%;
   max-width: 100%;
   display: block;
 }

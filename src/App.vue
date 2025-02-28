@@ -1,5 +1,9 @@
 <template>
   <div id="app">
+    <!-- 回到顶部按钮 -->
+    <el-backtop 
+      :visibility-height="70"
+    ></el-backtop>
     <!-- 遮罩层 -->
     <transition name="showMask">
       <div 
@@ -95,6 +99,7 @@
       <el-header 
         class="header" 
         v-show="!isMobile"
+        ref="header"
       >
         <div :class="['header-content', { 'container': isDesktop }]">
           <!-- 用户信息 -->
@@ -276,6 +281,10 @@ html{
 body{
   padding-right: 0 !important; /* 防止弹窗出现时页面移动 */
   margin: 0 !important;
+}
+#app{
+  height: 100%;
+  overflow-x: hidden;
 }
 /* 解决控制台多选框报错 */
 input[aria-hidden="true"] {

@@ -13,7 +13,7 @@
       </div>
     </el-dialog>
 
-    <!-- 上传区域 -->
+    <!-- 上传文件区域 -->
     <el-upload
       v-show="isLoggedIn"
       class="upload-demo"
@@ -26,12 +26,14 @@
       <el-icon class="el-icon--upload"><upload-filled /></el-icon>
       <div class="el-upload__text">拖拽或<em>点击上传文件</em></div>
     </el-upload>
+
+    <!-- 上传文件列表 -->
     <el-dialog 
       title="上传文件列表" 
-      @close="handleRefresh(); uploadFilesList = [];"
-      :visible="!!uploadFilesList.filter(file=>file.status!=='success').length" 
+      @close="uploadFilesListVisible = false"
+      :visible="uploadFilesListVisible" 
     >
-      <el-table :data="uploadFilesList" style="width: 100%" >
+      <el-table :data="uploadFilesList" style="width: 100%" max-height="450" >
         <el-table-column prop="name" :show-overflow-tooltip="true" label="名称">
           <template v-slot="{ row }">
               <i class='el-icon-document'></i>
@@ -84,11 +86,17 @@
           @click="uploadFilesList = []"
         >清空列表</el-button>
       </div>
-
     </el-dialog>
 
-    <!-- 刷新/下载和删除选中/总占用空间 -->
-    <el-row type="flex" class="row-bg" justify="space-between" align="middle" :gutter="20">
+    <!-- 刷新/新建文件夹/上传列表/下载和删除选中/总占用空间 -->
+    <el-row 
+      type="flex" 
+      class="row-bg" 
+      justify="space-between" 
+      align="middle" 
+      :gutter="20"
+      style="margin-top:5px;"
+    >
       <el-col :span="16">
         <!-- 刷新 -->
         <el-button 
@@ -103,6 +111,12 @@
           type="primary"
           @click="visible = true"
         >新建文件夹</el-button>
+        <!-- 显示上传列表 -->
+        <el-button 
+          v-show="isLoggedIn && uploadFilesList.length" 
+          type="info" plain
+          @click="uploadFilesListVisible = true"
+        >显示上传列表</el-button>
         <!-- 下载选中文件 -->
         <el-button 
           v-show="selectedFiles.length" 
@@ -121,7 +135,7 @@
         >删除选中文件</el-button>
       </el-col>
       <el-col :span="8">
-        <div class="stat">
+        <div class="stat" v-show="isLoggedIn">
           总占用空间：<i>{{ !loadingStates.storage ? formatSize(totalSize) : '计算中...' }}</i>
         </div>
       </el-col>
@@ -241,6 +255,7 @@ export default {
       visible: false, //新建文件夹窗口
       folderName: '', //新建文件夹名称
       uploadFilesList: [], //上传文件列表
+      uploadFilesListVisible: false, //上传文件列表可见性
       formatSize, formatTime, formatSpeed, formatTime_hms, //格式化函数
     }
   },
@@ -251,6 +266,27 @@ export default {
     pathParts() { //分隔目录
       return this.currentDir.split('/').filter(p => p) //过滤掉空字符串
     },
+  },
+
+  watch:{
+    isLoggedIn(newVal){
+      if(newVal){
+        this.updateTotalSize();
+      }
+    },
+    uploadFilesList:{
+      deep: true,
+      // immediate: true, 
+      handler(newVal){
+        if(!newVal.filter(file=>file.status!=='success').length){ //全部成功
+          this.uploadFilesListVisible = false; //隐藏上传列表
+          if(newVal.length) this.uploadFilesList.length = 0; //如果上传列表不空则清空
+        }
+        if(!newVal.filter(file=>file.status==='uploading').length){ //没有处于正在上传状态的
+          this.handleRefresh(); //刷新
+        }
+      }
+    }
   },
 
   async mounted() {
@@ -286,6 +322,7 @@ export default {
 
     //更新总占用空间
     async updateTotalSize() {
+      if(!this.isLoggedIn) return;
       this.totalSize = null;
       await this.withLoading({
         type: 'storage',
@@ -337,6 +374,7 @@ export default {
         fileList[key] = file[key]
       }
       this.uploadFilesList.push({ ...fileList, progress: 0, status: 'uploading' }) // 文件上传状态status:uploading、success、error 
+      this.uploadFilesListVisible = true; //显示上传列表
       this.httpRequest(file, parms => { 
         this.showProgress(fileList, parms)
       })
@@ -581,6 +619,9 @@ export default {
   font-style: normal;
 }
 /* 表格加载中文字 */
+p.loading{
+  margin: 0 !important;
+}
 .loading i {
     display: inline-block; 
     height: 1em;

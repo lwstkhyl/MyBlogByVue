@@ -179,7 +179,7 @@ export default {
     ...mapState('auth', {isLoggedIn: 'token'}),
     ...mapState('base', ['isMobileAgent', ]),
   },
-  mounted(){
+  async mounted(){
     window.addEventListener('keydown', e => {
       if(e.keyCode === 16 || e.keyCode === 17) {
         this.isKeydown = true;
@@ -192,6 +192,12 @@ export default {
     });
     window.addEventListener('resize', this.handleResize);
     this.handleResize();
+    try {
+        const res = await request.post('/auth/check');
+        this.SET_TOKEN(res.data.token);
+      } catch (err) {
+        this.LOGOUT();
+      }
   },
   methods: {
     ...mapMutations('auth', ['LOGOUT', 'SET_TOKEN', ]),

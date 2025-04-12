@@ -7,9 +7,12 @@ const originalPush = VueRouter.prototype.push
 VueRouter.prototype.push = function push(location) {
     return originalPush.call(this, location).catch(err => err)
 }
+import MyHome from "../components/MyHome.vue"
 import FileManager from '../components/FileManager.vue'
 import AvatarCreator from "../components/AvatarCreator.vue"
-import MyHome from "../components/MyHome.vue"
+import ArticleList from "../components/ArticleList.vue"
+import ArticleDetail from "../components/ArticleDetail.vue"
+import ArticleUpload from "../components/ArticleUpload.vue"
 const router = new VueRouter({
     mode: 'history',
     routes: [
@@ -33,6 +36,24 @@ const router = new VueRouter({
             path: '/avatar',
             component: AvatarCreator,
             meta: { title: '头像编辑' },
+        },
+        {
+            name: 'article',
+            path: '/article',
+            component: ArticleList,
+            meta: { title: '个人空间' },
+        },
+        {
+            name: 'articleUpload',
+            path: '/article/upload',
+            component: ArticleUpload,
+            meta: { title: '上传文章' },
+        },
+        {
+            name: 'articleDetail',
+            path: '/article/:id',
+            component: ArticleDetail,
+            meta: { title: '文章详情页' },
         },
     ]
 })

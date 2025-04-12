@@ -125,6 +125,7 @@
             mode="horizontal"
           >
             <el-menu-item index="/">首页</el-menu-item>
+            <el-menu-item index="/article">个人空间</el-menu-item>
             <el-menu-item index="/file">我的网盘</el-menu-item>
             <el-menu-item index="/avatar">头像编辑</el-menu-item>
           </el-menu>
@@ -228,7 +229,6 @@ export default {
             password: encryptPassword(this.form.password) // 前端加密
         });
         this.SET_TOKEN(res.data.token);
-        this.$router.push('/file');
         // window.location.reload(); // 强制刷新页面
         this.visible = false;
       } catch (err) {

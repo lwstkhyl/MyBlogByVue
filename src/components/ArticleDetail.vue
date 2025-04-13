@@ -98,8 +98,6 @@ export default {
                 this.isLoading = true;
                 const res = await request.get(`/article/${this.$route.params.id}`);
                 this.article = res.data;
-                console.log(this.article); 
-                
                 this.id = this.$route.params.id;
                 this.changeArticleForm = deepClone(this.article);
                 document.title = `${this.userName} - ${this.article.title}`;

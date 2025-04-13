@@ -76,6 +76,7 @@ import request from '../api/request';
 import {formatTime} from '../utils/formatters';
 import {deepClone} from '../utils/deepClone'
 import {tagsList} from '../utils/tagsList'
+import {userName} from '../../config/config'
 export default {
     data() {
         return {
@@ -84,7 +85,7 @@ export default {
             id: '', //文章id
             changeArticleVisible: false, //修改文章对话框
             changeArticleForm: {}, //修改文章表单项
-            formatTime, tagsList
+            formatTime, tagsList, userName
         }
     },
     computed: {
@@ -97,8 +98,11 @@ export default {
                 this.isLoading = true;
                 const res = await request.get(`/article/${this.$route.params.id}`);
                 this.article = res.data;
+                console.log(this.article); 
+                
                 this.id = this.$route.params.id;
                 this.changeArticleForm = deepClone(this.article);
+                document.title = `${this.userName} - ${this.article.title}`;
             } catch(err) {
                 this.article = {};
                 this.id = '';
@@ -118,7 +122,7 @@ export default {
             }
         },
     },
-    created() {
+    activated() {
         this.refresh();
     },
 }

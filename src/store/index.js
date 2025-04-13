@@ -1,5 +1,6 @@
 import Vue from 'vue';
 import Vuex from 'vuex';
+import request from '../api/request'
 
 Vue.use(Vuex);
 
@@ -25,6 +26,16 @@ const auth = {
             state.token = '';
             localStorage.removeItem('token');
         },
+    },
+    actions: {
+        async isLogin(context, value) {
+            try {
+                const res = await request.post('/auth/check');
+                context.commit('SET_TOKEN', res.data.token)
+            } catch (err) {
+                context.commit('LOGOUT');
+            }
+        }
     }
 }
 const pan = {

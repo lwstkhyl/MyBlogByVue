@@ -77,6 +77,10 @@
             <i class="el-icon-s-home"></i>
             <span slot="title">首页</span>
           </el-menu-item>
+          <el-menu-item index="/article">
+            <i class="el-icon-s-flag"></i>
+            <span slot="title">个人空间</span>
+          </el-menu-item>
           <el-menu-item index="/file">
             <i class="el-icon-folder-opened"></i>
             <span slot="title">我的网盘</span>
@@ -151,7 +155,7 @@
 </template>
 
 <script>
-import {mapState, mapGetters, mapActions, mapMutations} from 'vuex';
+import {mapState, mapActions, mapMutations} from 'vuex';
 import {encryptPassword} from './utils/crypto'
 import request from './api/request';
 import {userName, userAvatar, userURL, repURL} from '../config/config'
@@ -193,15 +197,11 @@ export default {
     });
     window.addEventListener('resize', this.handleResize);
     this.handleResize();
-    try {
-        const res = await request.post('/auth/check');
-        this.SET_TOKEN(res.data.token);
-      } catch (err) {
-        this.LOGOUT();
-      }
+    this.isLogin();
   },
   methods: {
     ...mapMutations('auth', ['LOGOUT', 'SET_TOKEN', ]),
+    ...mapActions('auth', ['isLogin', ]),
     handleLog(){ //根据是否处于登录状态，弹出登录/退出登录窗口
       if(!this.isLoggedIn) this.visible = true;
       else {

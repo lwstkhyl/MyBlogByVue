@@ -45,6 +45,7 @@
 import {mapState, mapActions} from 'vuex';
 import request from '../api/request';
 import {deepClone} from '../utils/deepClone'
+import {loginCheck} from '../utils/loginCheck'
 import {tagsList} from '../utils/tagsList'
 export default {
     data() {
@@ -96,14 +97,8 @@ export default {
     watch: {
         isLoggedIn: {
             handler(newVal){
-                if(!newVal){
-                    this.$alert('未登录', 'ArticleUpload', {
-                        confirmButtonText: '确定',
-                        callback: () => {
-                            this.$router.push('/article');
-                        }
-                    });
-                }
+                if(this.$router.currentRoute.fullPath !== '/article/upload') return;
+                if(!newVal) loginCheck(this, 'ArticleUpload');
             },
             immediate:true,
         }

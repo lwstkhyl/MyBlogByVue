@@ -51,13 +51,13 @@
                             <el-button 
                                 v-if="isLoggedIn"
                                 type="danger" plain
-                                @click="deleteArticle(article._id)"
+                                @click.stop="deleteArticle(article._id)"
                                 style="float: right;"
                             >删除</el-button>
                             <el-button 
                                 v-if="isLoggedIn"
                                 type="primary" plain
-                                @click="hideArticle(article._id, article.isPublished)"
+                                @click.stop="hideArticle(article._id, article.isPublished)"
                                 style="float: right; margin-right: 10px;"
                             >{{article.isPublished ? "隐藏" : "显示"}}</el-button>
                         </div>
@@ -164,7 +164,11 @@ export default {
                 this.$message.error('删除文章失败')
             }
         },
-
+    },
+    watch: {
+        isLoggedIn(){
+            this.refresh();
+        }
     },
     created() { //切到该页面时刷新一次
         this.refresh();

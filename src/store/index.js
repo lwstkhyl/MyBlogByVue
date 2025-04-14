@@ -32,8 +32,10 @@ const auth = {
             try {
                 const res = await request.post('/auth/check');
                 context.commit('SET_TOKEN', res.data.token)
+                return true;
             } catch (err) {
                 context.commit('LOGOUT');
+                return false;
             }
         }
     }

@@ -62,8 +62,8 @@
         <div class="header">
             <p v-if="isLoading">加载文章列表中<i>...</i></p>
             <span class="title">{{ article.title }}</span>
-            <span class="create-time">创建时间 {{ formatTime(article.createTime) }}</span>
-            <span class="update-time">修改时间 {{ formatTime(article.updateTime) }}</span>
+            <span class="create-time">创建时间 {{ article.createTime }}</span>
+            <span class="update-time">修改时间 {{ article.updateTime }}</span>
         </div>
         <!-- 文章内容 -->
         <div class="content" v-html="article.content"></div>
@@ -71,11 +71,12 @@
 </template>
 
 <script>
-import {mapState} from 'vuex';
+import {mapState, mapActions} from 'vuex';
 import request from '../api/request';
 import {formatTime} from '../utils/formatters';
 import {deepClone} from '../utils/deepClone'
 import {tagsList} from '../utils/tagsList'
+import {loginCheck} from '../utils/loginCheck'
 import {userName} from '../../config/config'
 export default {
     data() {
@@ -92,12 +93,15 @@ export default {
         ...mapState('auth', {isLoggedIn: 'token'}),
     },  
     methods: {
+        ...mapActions('auth', ['isLogin', ]),
         //加载文章内容
         async refresh(){
             try{
                 this.isLoading = true;
                 const res = await request.get(`/article/${this.$route.params.id}`);
                 this.article = res.data;
+                this.article.createTime = formatTime(this.article.createTime);
+                this.article.updateTime = formatTime(this.article.updateTime);
                 this.id = this.$route.params.id;
                 this.changeArticleForm = deepClone(this.article);
                 document.title = `${this.userName} - ${this.article.title}`;
@@ -120,8 +124,15 @@ export default {
             }
         },
     },
-    activated() {
-        this.refresh();
+    async activated() {
+        if(!((await request.get(`/article/isShow/${this.$route.params.id}`)).data.isShow)){
+            if(!(await this.isLogin())) {
+                loginCheck(this, 'ArticleDetail');
+                this.article = {};
+                return;
+            }
+        }
+        await this.refresh();
     },
 }
 </script>

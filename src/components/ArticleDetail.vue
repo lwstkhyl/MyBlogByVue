@@ -8,7 +8,7 @@
         <el-button 
             v-show="isLoggedIn"
             type="danger"
-            @click="changeArticleVisible = true"
+            @click="clickChangeArticle"
         >修改文章</el-button>
         <!-- 刷新 -->
         <el-button 
@@ -66,11 +66,15 @@
             <span class="update-time">修改时间 {{ article.updateTime }}</span>
         </div>
         <!-- 文章内容 -->
-        <div class="content" v-html="article.content"></div>
+        <div 
+            class="content" 
+            v-html="contentHTML"
+        ></div>
     </div>
 </template>
 
 <script>
+import {marked} from 'marked'
 import {mapState, mapActions} from 'vuex';
 import request from '../api/request';
 import {formatTime} from '../utils/formatters';
@@ -81,7 +85,8 @@ import {userName} from '../../config/config'
 export default {
     data() {
         return {
-            article: {}, //文章内容
+            article: {}, //文章
+            contentHTML: '', //转换后文章内容
             isLoading: false, //正在加载文章内容
             id: '', //文章id
             changeArticleVisible: false, //修改文章对话框
@@ -102,6 +107,7 @@ export default {
                 this.article = res.data;
                 this.article.createTime = formatTime(this.article.createTime);
                 this.article.updateTime = formatTime(this.article.updateTime);
+                this.contentHTML = marked(this.article.content);
                 this.id = this.$route.params.id;
                 this.changeArticleForm = deepClone(this.article);
                 document.title = `${this.userName} - ${this.article.title}`;
@@ -112,6 +118,14 @@ export default {
                 this.$message.error('获取文章失败')
             }
             this.isLoading = false;
+        },
+        //点击更改文章内容按钮
+        async clickChangeArticle(){
+            if(!(await this.isLogin())) {
+                loginCheck(this, 'ArticleUpdate', '未登录', `/article/${this.id}`);
+                return;
+            }
+            this.changeArticleVisible = true;
         },
         //更改文章内容
         async changeArticle(){

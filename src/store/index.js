@@ -29,6 +29,7 @@ const auth = {
     },
     actions: {
         async isLogin(context, value) {
+            context.commit('SET_TOKEN', localStorage.getItem('token') || '')
             try {
                 const res = await request.post('/auth/check');
                 context.commit('SET_TOKEN', res.data.token)

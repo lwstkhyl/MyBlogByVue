@@ -13,6 +13,7 @@ import AvatarCreator from "../components/AvatarCreator.vue"
 import ArticleList from "../components/ArticleList.vue"
 import ArticleDetail from "../components/ArticleDetail.vue"
 import ArticleUpload from "../components/ArticleUpload.vue"
+import MarkdownEdit from "../components/MarkdownEdit.vue"
 const router = new VueRouter({
     mode: 'history',
     routes: [
@@ -36,6 +37,12 @@ const router = new VueRouter({
             path: '/avatar',
             component: AvatarCreator,
             meta: { title: '头像编辑' },
+        },
+        {
+            name: 'markdown',
+            path: '/markdown',
+            component: MarkdownEdit,
+            meta: { title: 'markdown更改' },
         },
         {
             name: 'article',

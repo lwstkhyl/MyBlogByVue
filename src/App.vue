@@ -85,10 +85,20 @@
             <i class="el-icon-folder-opened"></i>
             <span slot="title">我的网盘</span>
           </el-menu-item>
-          <el-menu-item index="/avatar">
-            <i class="el-icon-picture"></i>
-            <span slot="title">头像编辑</span>
-          </el-menu-item>
+          <el-submenu index="/tools">
+            <template slot="title">
+              <i class="el-icon-s-tools"></i>
+              <span slot="title">小工具</span>
+            </template>
+            <el-menu-item index="/avatar">
+              <i class="el-icon-picture"></i>
+              <span slot="title">头像编辑</span>
+            </el-menu-item>
+            <el-menu-item index="/markdown">
+              <i class="el-icon-edit"></i>
+              <span slot="title">markdown更改</span>
+            </el-menu-item>
+          </el-submenu>
         </el-menu>
       </div>
     </el-aside>
@@ -131,7 +141,11 @@
             <el-menu-item index="/">首页</el-menu-item>
             <el-menu-item index="/article">个人空间</el-menu-item>
             <el-menu-item index="/file">我的网盘</el-menu-item>
-            <el-menu-item index="/avatar">头像编辑</el-menu-item>
+            <el-submenu index="/tools">
+              <template slot="title">小工具</template>
+              <el-menu-item index="/avatar">头像编辑</el-menu-item>
+              <el-menu-item index="/markdown">markdown更改</el-menu-item>
+            </el-submenu>
           </el-menu>
         </div>
       </el-header>
@@ -353,7 +367,7 @@ input[aria-hidden="true"] {
   line-height: 70px;
   margin-right: 8px;
 }
-.header .el-menu li{
+.header .el-menu li, .header .el-menu li .el-submenu__title, .header .el-menu li .el-submenu__title i{
   font-size: 16px;
   height: 70px;
   line-height: 70px;

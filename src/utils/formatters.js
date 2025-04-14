@@ -39,3 +39,18 @@ export const formatSpeed = (bytesPerSecond) => {
     }
     return `${speed.toFixed(1)} GB/s`;
 };
+
+//改图片宽高（![title](href){:width=100px height=200px} -> ![title##w100h200](href)
+export const formatImg = (markdown) => {
+    const regex = /!\[(.*?)\]\((.*?)\)\{(.*?)\}/g;
+    const result = markdown.replace(regex, (match, title, href, attributes) => {
+        let width = (attributes?.match(/:width=(\d+)/) || [])[1] || '';
+        let height = (attributes?.match(/height=(\d+)/) || [])[1] || '';
+        const size = [];
+        if (width) size.push(`w${width}`);
+        if (height) size.push(`h${height}`);
+        return `![${title}${size.length ? '##' + size.join('') : ''}](${href})
+        `;
+    });
+    return result;
+};

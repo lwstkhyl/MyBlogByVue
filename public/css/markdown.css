@@ -1,0 +1,204 @@
+/* 文本 */
+.article-detail .content p {
+    color: #4d4d4d !important;
+    font-weight: 400 !important;
+    font-size: 16px !important;
+    line-height: 26px !important;
+    margin: 0 0 16px !important;
+    padding: 0 !important;
+}
+
+/* 上下文字 */
+.article-detail .content sub,
+.article-detail .content sup {
+    font-size: 12px !important;
+}
+
+/* 标签 */
+.article-detail .content h1,
+.article-detail .content h2,
+.article-detail .content h3,
+.article-detail .content h4,
+.article-detail .content h5 {
+    color: #4f4f4f !important;
+    margin: 24px 0 8px !important;
+    padding: 0 !important;
+    font-weight: 600 !important;
+    /* 字体 */
+    font-family: -apple-system, SF UI Text, Arial, PingFang SC, Hiragino Sans GB, Microsoft YaHei, WenQuanYi Micro Hei, sans-serif !important;
+    font-feature-settings: normal !important;
+}
+
+.article-detail .content h1 {
+    font-size: 24px !important;
+    line-height: 34px !important;
+}
+
+.article-detail .content h2 {
+    font-size: 22px !important;
+    line-height: 32px !important;
+}
+
+.article-detail .content h3 {
+    font-size: 20px !important;
+    line-height: 30px !important;
+}
+
+.article-detail .content h4 {
+    font-size: 18px !important;
+    line-height: 28px !important;
+}
+
+.article-detail .content h5 {
+    font-size: 16px !important;
+    line-height: 26px !important;
+}
+
+/* 超链接 */
+.article-detail .content p a {
+    color: #4EA1DB !important;
+    background: none !important;
+    font-weight: normal !important;
+    line-height: 26px !important;
+    font-size: 16px !important;
+    text-decoration: none !important;
+    margin: 0 !important;
+    padding: 0 !important;
+    cursor: pointer !important;
+    text-shadow: none !important;
+    outline: 0 !important;
+    /* 字体 */
+    font-family: -apple-system, SF UI Text, Arial, PingFang SC, Hiragino Sans GB, Microsoft YaHei, WenQuanYi Micro Hei, sans-serif !important;
+    font-feature-settings: normal !important;
+}
+
+.article-detail .content p a:hover {
+    color: #ca0c16 !important;
+}
+
+/* 列表 */
+.article-detail .content li {
+    font-family: -apple-system, SF UI Text, Arial, PingFang SC, Hiragino Sans GB, Microsoft YaHei, WenQuanYi Micro Hei, sans-serif !important;
+    font-feature-settings: normal !important;
+    margin: 8px 0 0 32px !important;
+    padding: 0 !important;
+    font-weight: normal !important;
+}
+
+.article-detail .content ul {
+    margin: 0 0 24px !important;
+    padding: 0 !important;
+    font-size: 16px !important;
+}
+
+/* 表格 */
+.article-detail .content table {
+    margin: 0 !important;
+    padding: 0 !important;
+    margin-bottom: 24px !important;
+    border-collapse: collapse !important;
+    width: 100% !important;
+}
+
+.article-detail .content table tr {
+    border: 0 !important;
+    border-top: 1px solid #ddd !important;
+    background-color: #fff !important;
+}
+
+.article-detail .content table tr th,
+.article-detail .content table tr td {
+    font-size: 14px !important;
+    color: #4f4f4f !important;
+    line-height: 22px !important;
+    border: 1px solid #ddd !important;
+    padding: 8px !important;
+    margin: 0 !important;
+    vertical-align: middle !important;
+    /* 单元格居中 */
+    text-align: center !important;
+    /* 字体 */
+    font-family: -apple-system, SF UI Text, Arial, PingFang SC, Hiragino Sans GB, Microsoft YaHei, WenQuanYi Micro Hei, sans-serif !important;
+    font-feature-settings: normal !important;
+}
+
+.article-detail .content table tr th {
+    font-weight: 700 !important;
+    background-color: #eff3f5 !important;
+}
+
+.article-detail .content table tr td {
+    font-weight: normal !important;
+}
+
+.article-detail .content table tr:nth-of-type(2n) {
+    background-color: #f7f7f7 !important;
+}
+
+/* 代码框内文字 */
+.article-detail .content pre {
+    background-color: #fafafa !important;
+    font-size: 14px !important;
+    line-height: 22px !important;
+    margin: 0 0 24px !important;
+    padding: 8px 16px 6px 56px !important;
+}
+
+.article-detail .content code span {
+    font-size: 14px !important;
+}
+
+.article-detail .content code,
+.article-detail .content code span {
+    line-height: 22px !important;
+    font-size: 14px !important;
+    /* 字体 */
+    font-family: Source Code Pro, DejaVu Sans Mono, Ubuntu Mono, Anonymous Pro, Droid Sans Mono, Menlo, Monaco, Consolas, Inconsolata, Courier, monospace, PingFang SC, Microsoft YaHei, sans-serif !important;
+    font-feature-settings: normal !important;
+}
+
+/* 设置代码框内滚动条在code框上 */
+.article-detail .content pre {
+    overflow-x: hidden !important;
+}
+
+.article-detail .content pre code {
+    display: block !important;
+    overflow-x: auto !important;
+}
+
+/* 用单个`括起来的代码 */
+.article-detail .content p>code {
+    padding: 2px 4px !important;
+    font-size: 14px !important;
+    line-height: 22px !important;
+    color: #c7254e !important;
+    background-color: #f9f2f4 !important;
+    border-radius: 2px !important;
+    font-family: Source Code Pro, DejaVu Sans Mono, Ubuntu Mono, Anonymous Pro, Droid Sans Mono, Menlo, Monaco, Consolas, Inconsolata, Courier, monospace, PingFang SC, Microsoft YaHei, sans-serif !important;
+    font-feature-settings: normal !important;
+}
+
+/* 滚动条样式 */
+.article-detail .content pre code::-webkit-scrollbar {
+    height: 8px !important;
+    width: 138px !important;
+}
+
+.article-detail .content pre code::-webkit-scrollbar-thumb {
+    background: #C2C2C2 !important;
+    border-radius: 4px !important;
+}
+
+/* 字体 */
+.article-detail .content,
+.article-detail .content p {
+    font-family: -apple-system, SF UI Text, Arial, PingFang SC, Hiragino Sans GB, Microsoft YaHei, WenQuanYi Micro Hei, sans-serif !important;
+    font-feature-settings: normal !important;
+}
+
+/* 分割线样式 */
+.article-detail .content hr {
+    background-size: 100% 5px !important;
+    margin: 16px 0 !important;
+}

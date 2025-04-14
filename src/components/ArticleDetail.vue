@@ -74,10 +74,20 @@
 </template>
 
 <script>
+//md相关文件
 import {marked} from 'marked'
+import {renderImg} from '../utils/rendererMD'
+const renderer = {
+    image(href, _title, text){
+        return renderImg(href, _title, text);
+    }
+}
+marked.use({ renderer: renderer })
+import '../../public/css/markdown.css';
+//其它
 import {mapState, mapActions} from 'vuex';
 import request from '../api/request';
-import {formatTime} from '../utils/formatters';
+import {formatTime, formatImg} from '../utils/formatters';
 import {deepClone} from '../utils/deepClone'
 import {tagsList} from '../utils/tagsList'
 import {loginCheck} from '../utils/loginCheck'
@@ -105,6 +115,7 @@ export default {
                 this.isLoading = true;
                 const res = await request.get(`/article/${this.$route.params.id}`);
                 this.article = res.data;
+                this.article.content = formatImg(this.article.content);
                 this.article.createTime = formatTime(this.article.createTime);
                 this.article.updateTime = formatTime(this.article.updateTime);
                 this.contentHTML = marked(this.article.content);
@@ -112,6 +123,8 @@ export default {
                 this.changeArticleForm = deepClone(this.article);
                 document.title = `${this.userName} - ${this.article.title}`;
             } catch(err) {
+                console.log(err); 
+                
                 this.article = {};
                 this.id = '';
                 this.changeArticleForm = {};

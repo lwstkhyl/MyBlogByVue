@@ -123,8 +123,6 @@ export default {
                 this.changeArticleForm = deepClone(this.article);
                 document.title = `${this.userName} - ${this.article.title}`;
             } catch(err) {
-                console.log(err); 
-                
                 this.article = {};
                 this.id = '';
                 this.changeArticleForm = {};

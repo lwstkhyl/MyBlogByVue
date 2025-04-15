@@ -1,5 +1,7 @@
+import request from '../api/request'
+
 //图片尺寸更改映射
-export const size_map = {
+export const size_map_default = { //默认值
     '50': '250',
     '60': '250',
     '70': '250',
@@ -24,6 +26,18 @@ export const size_map = {
     '500': '800',
     '550': '800',
     '600': '800',
+}
+
+export async function get_size_map() {
+    let size_map = size_map_default;
+    try {
+        const size_map_str = (await request.get('/tools/imgSizeMap')).data.value;
+        if (size_map_str === '') size_map = size_map_default;
+        else size_map = JSON.parse(size_map_str);
+    } catch (err) {
+        size_map = size_map_default;
+    }
+    return size_map;
 }
 
 //识别的代码类型
@@ -113,7 +127,7 @@ const changeCodePos = (c) => {
 };
 
 //改图片尺寸
-const changeImgSize = (c) => {
+const changeImgSize = (c, { size_map }) => {
     let res = '';
     const line_list = c.split('\n').map((line) => line + '\n');
     line_list.forEach((line) => {

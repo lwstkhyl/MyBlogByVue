@@ -26,7 +26,7 @@
                         <el-checkbox label="改代码块位置" border></el-checkbox>
                     </div>
                     <div style="margin-top: 20px">
-                        <el-tooltip effect="dark" open-delay="1000">
+                        <el-tooltip effect="dark" :open-delay="1000">
                             <div slot="content" v-html="sizeMapStr()"></div>
                             <el-checkbox label="改图片尺寸" border></el-checkbox>
                         </el-tooltip>
@@ -36,7 +36,7 @@
                             <el-checkbox label="改图片路径" border></el-checkbox>
                         </el-col>
                         <el-col>
-                            <el-tooltip effect="dark" open-delay="1000">
+                            <el-tooltip effect="dark" :open-delay="1000">
                                 <div slot="content">旧路径默认值：./md-image/</div>
                                 <el-input
                                     placeholder="旧路径"
@@ -46,7 +46,7 @@
                             </el-tooltip>
                         </el-col>
                         <el-col>
-                            <el-tooltip effect="dark" open-delay="1000">
+                            <el-tooltip effect="dark" :open-delay="1000">
                                 <div slot="content">新路径默认值：/upload/md-image/</div>
                                 <el-input
                                     placeholder="新路径"
@@ -61,7 +61,7 @@
                             <el-checkbox label="改代码类型" border></el-checkbox>
                         </el-col>
                         <el-col>
-                            <el-tooltip effect="dark" open-delay="1000">
+                            <el-tooltip effect="dark" :open-delay="1000">
                                 <div slot="content">代码类型默认不加</div>
                                 <el-autocomplete
                                     placeholder="代码类型"
@@ -96,19 +96,78 @@
                         @click="content = '';"
                     >清空输入</el-button>
                 </div>
-                <div  style="margin-top: 20px">
+                <div style="margin-top: 20px">
                     <el-button 
                         type="primary"
                         @click="copy"
                     >复制输出</el-button>
                 </div>
+                <div style="margin-top: 50px">
+                    <el-button 
+                        v-show="isLoggedIn" 
+                        type="primary" plain
+                        @click="clickChangeImgSizeMap()"
+                    >更改图片尺寸映射</el-button>
+                </div>
             </el-col>
         </el-row>
+        <!-- 更改图片尺寸映射对话框 -->
+        <el-dialog title="更改排序" :visible.sync="changeImgSizeMapVisible">
+            <el-form 
+                :model="changedImgSizeMap" 
+                ref="form" 
+            >
+                <el-row type="flex" justify="center" align="middle">
+                    <el-col :span="10" style="display: flex; justify-content: center;">
+                        图片原尺寸
+                    </el-col>
+                    <el-col :span="10" style="display: flex; justify-content: center;align-item:center;">
+                        修改后尺寸
+                    </el-col>
+                    <el-col :span="4"></el-col>
+                </el-row>
+                <el-row 
+                    v-for="(row, index) in changedImgSizeMap.arr"
+                    :key="index"
+                    :style="`margin-top: 20px; margin-bottom: ${index !== (changedImgSizeMap.arr.length-1) ? '0px' : '20px'};`"
+                    type="flex" justify="center" align="middle"
+                >
+                    <el-col :span="10" style="display: flex; justify-content: center;">
+                        <el-form-item label="" prop="before">
+                            <el-input type="number" v-model.number="row.before"></el-input>
+                        </el-form-item>
+                    </el-col>
+                    <el-col :span="10" style="display: flex; justify-content: center;">
+                        <el-form-item label="" prop="after">
+                            <el-input type="number" v-model.number="row.after"></el-input>
+                        </el-form-item>
+                    </el-col>
+                    <el-col :span="4" style="display: flex; justify-content: center;">
+                        <el-button
+                            :type="`${index !== (changedImgSizeMap.arr.length-1) ? 'danger': 'primary'}`"
+                            size="small"
+                            :icon="`${index !== (changedImgSizeMap.arr.length-1) ? 'el-icon-delete': 'el-icon-plus'}`"
+                            @click="`${index !== (changedImgSizeMap.arr.length-1) ? deleteItem(row, index) : addItem()}`"
+                        ></el-button>
+                    </el-col>
+                </el-row>
+                <el-row type="flex" justify="space-around">
+                    <el-col :span="6">
+                        <el-button type="danger" @click="resetImgSizeMap">重置</el-button>
+                    </el-col>
+                    <el-col :span="6">
+                        <el-button type="primary" @click="changeImgSizeMap">提交</el-button>
+                    </el-col>
+                </el-row>
+            </el-form>
+        </el-dialog>
     </div>
 </template>
 <script>
+import {mapState} from 'vuex';
 import debounce from 'lodash.debounce'
-import {funcDir, codeTypeList, size_map} from '../utils/markdownEdit'
+import request from '../api/request';
+import {funcDir, codeTypeList, get_size_map, size_map_default} from '../utils/markdownEdit'
 export default {
     data() {
         return {
@@ -119,9 +178,17 @@ export default {
                 codeType: '',
                 newPath: '',
                 oldPath: '',
+                size_map: {},
             },
-            codeTypeList,
+            changeImgSizeMapVisible: false,
+            changedImgSizeMap:{
+                arr: [],
+            },
+            codeTypeList, 
         }
+    },
+    computed: {
+        ...mapState('auth', {isLoggedIn: 'token'}),
     },
     methods: {
         update: debounce(function(){
@@ -159,11 +226,67 @@ export default {
         },
         sizeMapStr(){
             let res = '';
-            for(const old_size in size_map){
-                res += `${old_size}->${size_map[old_size]}<br/>`;
+            for(const old_size in this.funcArgs.size_map){
+                res += `${old_size}->${this.funcArgs.size_map[old_size]}<br/>`;
             }
             return res;
-        }
+        },
+        async clickChangeImgSizeMap(){
+            this.changeImgSizeMapVisible = true; 
+            await this.refreshImgSizeMap();
+            this.changedImgSizeMap = {
+                arr: [],
+            };
+            for(const i in this.funcArgs.size_map){
+                this.changedImgSizeMap.arr.push({
+                    before: i,
+                    after: this.funcArgs.size_map[i],
+                });
+            }
+            this.addItem();
+        },
+        addItem(){
+            this.changedImgSizeMap.arr.push({
+                before: 0,
+                after: 0,
+            });
+        },
+        deleteItem(item, index){
+            this.changedImgSizeMap.arr.splice(index, 1);
+        },
+        resetImgSizeMap(){
+            this.changedImgSizeMap = {
+                arr: [],
+            };
+            for(const i in size_map_default){
+                this.changedImgSizeMap.arr.push({
+                    before: i,
+                    after: size_map_default[i],
+                });
+            }
+            this.addItem();
+        },
+        async refreshImgSizeMap(){
+            this.funcArgs.size_map = await get_size_map();
+        },
+        async changeImgSizeMap(){
+            try{
+                const res = {};
+                this.changedImgSizeMap.arr.forEach((value, index)=>{
+                    value["before"] = parseInt(value["before"]);
+                    value["after"] = parseInt(value["after"]);
+                    if(value["before"] === 0 || value["after"] === 0) return;
+                    res[value["before"]] = value["after"];
+                });
+                await request.post('/tools/imgSizeMap', {
+                    value: JSON.stringify(res),
+                });
+                this.changeImgSizeMapVisible = false;
+            } catch(err){
+                this.$message.error('更改图片尺寸映射失败');
+            }
+            this.refreshImgSizeMap();
+        },
     },
     watch:{
         optionList(){
@@ -178,7 +301,10 @@ export default {
             },
             deep: true
         },
-    }
+    },
+    activated() {
+        this.refreshImgSizeMap();
+    },
 }
 </script>
 <style>
@@ -191,5 +317,11 @@ export default {
 }
 .markdown-edit .pointer{
     cursor: pointer;
+}
+.markdown-edit .el-dialog__header{
+    padding-bottom: 0px;
+}
+.markdown-edit .el-form-item{
+    margin: 0;
 }
 </style>

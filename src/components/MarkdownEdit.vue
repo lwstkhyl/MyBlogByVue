@@ -8,29 +8,43 @@
                     type="textarea"
                     v-model="content"
                     :rows="16"
-                    placeholder="双击/长按粘贴"
+                    placeholder="双击粘贴"
                     @dblclick.native="paste"
-                    v-longpress="paste"
                 ></el-input>
             </el-col>
             <!-- 多选框 -->
             <el-col :span="8">
                 <el-checkbox-group v-model="optionList">
+                    <!-- 加换行 -->
                     <div>
                         <el-checkbox label="加换行" border></el-checkbox>
                     </div>
+                    <!-- 改标题(5->4 6->5) -->
                     <div style="margin-top: 20px">
                         <el-checkbox label="改标题(5->4 6->5)" border></el-checkbox>
                     </div>
+                    <!-- 改代码块位置 -->
                     <div style="margin-top: 20px">
                         <el-checkbox label="改代码块位置" border></el-checkbox>
                     </div>
-                    <div style="margin-top: 20px">
-                        <el-tooltip effect="dark" :open-delay="1000">
-                            <div slot="content" v-html="sizeMapStr()"></div>
+                    <!-- 改图片尺寸 -->
+                    <el-row style="margin-top: 20px" type="flex">
+                        <el-col>
                             <el-checkbox label="改图片尺寸" border></el-checkbox>
-                        </el-tooltip>
-                    </div>
+                        </el-col>
+                        <el-col>
+                            <el-tooltip effect="dark" :open-delay="1000">
+                                <div slot="content" v-html="sizeMapStr()"></div>
+                                <el-button 
+                                    type="primary" plain
+                                    @click="clickChangeImgSizeMap()"
+                                    style="margin-left: 5px;"
+                                    :disabled="!optionList.includes('改图片尺寸')"
+                                >更改图片尺寸映射</el-button>
+                            </el-tooltip>
+                        </el-col>
+                    </el-row>
+                    <!-- 改图片路径 -->
                     <el-row style="margin-top: 20px;" type="flex" justify="space-between">
                         <el-col>
                             <el-checkbox label="改图片路径" border></el-checkbox>
@@ -56,6 +70,7 @@
                             </el-tooltip>
                         </el-col>
                     </el-row>
+                    <!-- 改代码类型 -->
                     <el-row style="margin-top: 20px" type="flex">
                         <el-col>
                             <el-checkbox label="改代码类型" border></el-checkbox>
@@ -102,20 +117,14 @@
                         @click="copy"
                     >复制输出</el-button>
                 </div>
-                <div style="margin-top: 50px">
-                    <el-button 
-                        v-show="isLoggedIn" 
-                        type="primary" plain
-                        @click="clickChangeImgSizeMap()"
-                    >更改图片尺寸映射</el-button>
-                </div>
             </el-col>
         </el-row>
         <!-- 更改图片尺寸映射对话框 -->
         <el-dialog title="更改排序" :visible.sync="changeImgSizeMapVisible">
             <el-form 
                 :model="changedImgSizeMap" 
-                ref="form" 
+                ref="form"
+                @keyup.enter.native="changeImgSizeMap" 
             >
                 <el-row type="flex" justify="center" align="middle">
                     <el-col :span="10" style="display: flex; justify-content: center;">
@@ -164,7 +173,7 @@
     </div>
 </template>
 <script>
-import {mapState} from 'vuex';
+import {mapState, mapActions} from 'vuex';
 import debounce from 'lodash.debounce'
 import request from '../api/request';
 import {funcDir, codeTypeList, get_size_map, size_map_default} from '../utils/markdownEdit'
@@ -173,7 +182,7 @@ export default {
         return {
             content: '',
             newContent: '',
-            optionList: ["加换行", "改标题(5->4 6->5)", "改代码块位置", ],
+            optionList: ["加换行", "改标题(5->4 6->5)", "改代码块位置", '改图片尺寸', ],
             funcArgs:{
                 codeType: '',
                 newPath: '',
@@ -191,6 +200,7 @@ export default {
         ...mapState('auth', {isLoggedIn: 'token'}),
     },
     methods: {
+        ...mapActions('auth', ['isLogin', ]),
         update: debounce(function(){
             if(!this.content.replace(/(rn|n|r)/gm, '').trim()) {
                 this.newContent = '';
@@ -267,7 +277,11 @@ export default {
             this.addItem();
         },
         async refreshImgSizeMap(){
-            this.funcArgs.size_map = await get_size_map();
+            if((await this.isLogin())) { //如果登录
+                this.funcArgs.size_map = await get_size_map();
+            } else { //未登录
+                this.funcArgs.size_map = JSON.parse(localStorage.getItem("imgSizeMap")) || size_map_default;
+            }
         },
         async changeImgSizeMap(){
             try{
@@ -275,12 +289,16 @@ export default {
                 this.changedImgSizeMap.arr.forEach((value, index)=>{
                     value["before"] = parseInt(value["before"]);
                     value["after"] = parseInt(value["after"]);
-                    if(value["before"] === 0 || value["after"] === 0) return;
+                    if(value["before"] == 0 || value["after"] == 0) return;
                     res[value["before"]] = value["after"];
                 });
-                await request.post('/tools/imgSizeMap', {
-                    value: JSON.stringify(res),
-                });
+                if((await this.isLogin())) { //如果登录
+                    await request.post('/tools/imgSizeMap', {
+                        value: JSON.stringify(res),
+                    });
+                } else { //未登录
+                    localStorage.setItem("imgSizeMap", JSON.stringify(res));
+                }
                 this.changeImgSizeMapVisible = false;
             } catch(err){
                 this.$message.error('更改图片尺寸映射失败');
@@ -295,6 +313,9 @@ export default {
         content(){
             this.update();
         },
+        isLoggedIn(){
+            this.refreshImgSizeMap();
+        },
         funcArgs:{
             handler(){
                 this.update();
@@ -308,6 +329,12 @@ export default {
 }
 </script>
 <style>
+/* 输入框字体 */
+input, input::-webkit-input-placeholder, textarea, textarea::-webkit-input-placeholder{
+    font-family: -apple-system, SF UI Text, Arial, PingFang SC, Hiragino Sans GB, Microsoft YaHei, WenQuanYi Micro Hei, sans-serif !important;
+    font-feature-settings: normal !important;
+}
+/* 输入框左边距 */
 .markdown-edit .el-col-24{
     width: auto;
 }

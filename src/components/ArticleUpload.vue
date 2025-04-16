@@ -12,6 +12,21 @@
             <el-form-item label="标题" prop="title">
                 <el-input v-model="form.title" :validate-event="false"></el-input>
             </el-form-item>
+            <el-form-item label="图片url" prop="imgUrl">
+                <el-tooltip effect="light" :disabled="!(form.imgUrl)">
+                    <div slot="content">
+                        <img 
+                            :src="form.imgUrl" 
+                            alt="图片预览"
+                            style="max-width:600px; max-height:600px;"
+                        >
+                    </div>
+                    <el-input 
+                        v-model="form.imgUrl"
+                        placeholder="图片url"
+                    ></el-input>
+                </el-tooltip>
+            </el-form-item>
             <el-form-item label="内容" prop="content">
                 <el-input
                     type="textarea"
@@ -52,6 +67,7 @@ export default {
         return {
             form: {
                 title: '',
+                imgUrl: '',
                 content: '',
                 tags: '',
                 category: '',
@@ -60,7 +76,7 @@ export default {
                 updateTime: Date.now(),
                 sortID: 0,
             }, //表单项
-            initForm: {}, //初始表单
+            initForm: deepClone(this.form), //初始表单
             rules: {
                 title: [{ required: true, message: '请输入标题'}],
                 content: [{ required: true, message: '请输入内容'}],
@@ -105,7 +121,6 @@ export default {
     },
     mounted(){
         this.isLogin();
-        this.initForm = deepClone(this.form);
         window.addEventListener('keyup', (e)=>{
             if(e.key === 'Escape'){
                 this.$router.push('/article');

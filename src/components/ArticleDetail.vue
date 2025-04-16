@@ -26,6 +26,19 @@
                 v-model="changeArticleForm.title"
                 placeholder="标题"
             ></el-input>
+            <el-tooltip effect="light" :disabled="!(changeArticleForm.imgUrl)">
+                <div slot="content">
+                    <img 
+                        :src="changeArticleForm.imgUrl" 
+                        alt="图片预览"
+                        style="max-width:600px; max-height:600px;"
+                    >
+                </div>
+                <el-input 
+                    v-model="changeArticleForm.imgUrl"
+                    placeholder="图片url"
+                ></el-input>
+            </el-tooltip>
             <el-autocomplete
                 v-model="changeArticleForm.category"
                 :fetch-suggestions="tagsList"
@@ -157,6 +170,7 @@ export default {
                 return;
             }
         }
+        if(this.$route.query.change) this.changeArticleVisible = true;
         await this.refresh();
     },
 }

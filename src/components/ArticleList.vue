@@ -51,14 +51,20 @@
                             <el-button 
                                 v-if="isLoggedIn"
                                 type="danger" plain
-                                @click.stop="deleteArticle(article._id)"
+                                @click.stop="deleteArticle(article._id, article.title)"
                                 style="float: right;"
                             >删除</el-button>
                             <el-button 
                                 v-if="isLoggedIn"
+                                type="info" plain
+                                @click.stop="changeArticle(article._id)"
+                                style="float: right; margin-right: 10px;"
+                            >修改</el-button>
+                            <el-button 
+                                v-if="isLoggedIn"
                                 type="primary" plain
                                 @click.stop="hideArticle(article._id, article.isPublished)"
-                                style="float: right; margin-right: 10px;"
+                                style="float: right;"
                             >{{article.isPublished ? "隐藏" : "显示"}}</el-button>
                         </div>
                         <span class="time">{{ formatTime(article.createTime) }}</span>
@@ -156,13 +162,32 @@ export default {
             }
         },
         //删除指定文章
-        async deleteArticle(id){ 
+        async deleteArticle(id, title){ 
             try{
+                try{
+                    await this.$confirm(`确认删除：${title}`, '提示', {
+                        confirmButtonText: '确定',
+                        cancelButtonText: '取消',
+                        type: 'warning'
+                    });
+                } catch (err){
+                    return;
+                }
                 await request.delete(`/article/${id}`);
+                this.$message.success(`已删除：${title}`);
                 this.refresh();
             } catch (err) {
                 this.$message.error('删除文章失败')
             }
+        },
+        //修改指定文章
+        changeArticle(id){
+            this.$router.push({
+                path: `/article/${id}`,
+                query: {
+                    change: true
+                }
+            });
         },
     },
     watch: {
@@ -173,7 +198,7 @@ export default {
     created() { //切到该页面时刷新一次
         this.refresh();
     },
-    activated() { //进行更改发生更改时刷新
+    activated() { //发生更改时刷新
         if(this.$route.query.refresh) this.refresh();
     },
 }

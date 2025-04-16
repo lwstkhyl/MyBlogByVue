@@ -466,6 +466,15 @@ export default {
 
     //删除单个文件
     async deleteFile(path) {
+      try{
+        await this.$confirm('确认删除', '提示', {
+          confirmButtonText: '确定',
+          cancelButtonText: '取消',
+          type: 'warning'
+        });
+      } catch (err){
+        return;
+      }
       await this.withLoading({
         type: 'delete',
         fn: async () => {
@@ -485,6 +494,15 @@ export default {
 
     //删除多个文件
     async handleDelete() {
+      try{
+        await this.$confirm('确认删除', '提示', {
+          confirmButtonText: '确定',
+          cancelButtonText: '取消',
+          type: 'warning'
+        });
+      } catch (err){
+        return;
+      }
       await this.withLoading({
         type: 'delete',
         fn: async () => {

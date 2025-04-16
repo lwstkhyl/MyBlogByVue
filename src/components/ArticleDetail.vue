@@ -114,7 +114,7 @@ export default {
             id: '', //文章id
             changeArticleVisible: false, //修改文章对话框
             changeArticleForm: {}, //修改文章表单项
-            formatTime, tagsList, userName
+            formatTime, tagsList
         }
     },
     computed: {
@@ -124,22 +124,33 @@ export default {
         ...mapActions('auth', ['isLogin', ]),
         //加载文章内容
         async refresh(){
-            try{
+            try{ //获取文章内容，初始化变量
                 this.isLoading = true;
                 const res = await request.get(`/article/${this.$route.params.id}`);
                 this.article = res.data;
-                this.article.content = formatImg(this.article.content);
-                this.article.createTime = formatTime(this.article.createTime);
-                this.article.updateTime = formatTime(this.article.updateTime);
-                this.contentHTML = marked(this.article.content);
                 this.id = this.$route.params.id;
                 this.changeArticleForm = deepClone(this.article);
-                document.title = `${this.userName} - ${this.article.title}`;
+                document.title = `${userName} - ${this.article.title}`;
             } catch(err) {
                 this.article = {};
                 this.id = '';
                 this.changeArticleForm = {};
-                this.$message.error('获取文章失败')
+                this.$message.error('获取文章失败');
+                loginCheck(this, 'ArticleDetail', `${err.status === 403?"无权限":"文章不存在"}`, "/article");
+                this.isLoading = false;
+                return;
+            }
+            try{ //格式化文章内容
+                this.article.content = formatImg(this.article.content);
+                this.article.createTime = formatTime(this.article.createTime);
+                this.article.updateTime = formatTime(this.article.updateTime);
+                this.contentHTML = marked(this.article.content);
+            } catch(err) {
+                console.log(err); 
+                this.contentHTML = "";
+                this.$message.error('格式化文章失败');
+                this.isLoading = false;
+                return;
             }
             this.isLoading = false;
         },
@@ -163,15 +174,8 @@ export default {
         },
     },
     async activated() {
-        if(!((await request.get(`/article/isShow/${this.$route.params.id}`)).data.isShow)){
-            if(!(await this.isLogin())) {
-                loginCheck(this, 'ArticleDetail');
-                this.article = {};
-                return;
-            }
-        }
-        if(this.$route.query.change) this.changeArticleVisible = true;
         await this.refresh();
+        if(this.$route.query.change) this.changeArticleVisible = true;
     },
 }
 </script>

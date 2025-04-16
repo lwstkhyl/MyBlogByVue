@@ -77,8 +77,14 @@
             <i class="el-icon-s-home"></i>
             <span slot="title">首页</span>
           </el-menu-item>
-          <el-menu-item index="/article">
-            <i class="el-icon-s-flag"></i>
+          <el-menu-item 
+            index="/article" 
+            :style="`${$route.path.startsWith('/article') ? 'color: #409EFF': ''}`"
+          >
+            <i 
+              class="el-icon-s-flag"
+              :style="`${$route.path.startsWith('/article') ? 'color: #409EFF': ''}`"
+            ></i>
             <span slot="title">个人空间</span>
           </el-menu-item>
           <el-menu-item index="/file">
@@ -139,7 +145,10 @@
             mode="horizontal"
           >
             <el-menu-item index="/">首页</el-menu-item>
-            <el-menu-item index="/article">个人空间</el-menu-item>
+            <el-menu-item 
+              index="/article"
+              :style="`${$route.path.startsWith('/article') ? 'border-bottom: 2px solid #409EFF !important; color: #303133 !important;': ''}`"
+            >个人空间</el-menu-item>
             <el-menu-item index="/file">我的网盘</el-menu-item>
             <el-submenu index="/tools">
               <template slot="title">小工具</template>

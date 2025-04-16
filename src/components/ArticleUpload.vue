@@ -48,8 +48,8 @@
             <el-form-item label="序号" prop="sortID">
                 <el-input type="number" v-model.number="form.sortID"></el-input>
             </el-form-item>
-            <el-form-item label="是否立即显示" prop="isPublished">
-                <el-checkbox label="立即显示" name="isPublished" v-model="form.isPublished"></el-checkbox>
+            <el-form-item label="立即显示？" prop="isPublished">
+                <el-checkbox label="√" v-model="form.isPublished" border></el-checkbox>
             </el-form-item>
             <el-button type="primary" @click="submitForm">提交</el-button>
         </el-form>

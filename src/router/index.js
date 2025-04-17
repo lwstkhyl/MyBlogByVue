@@ -9,6 +9,7 @@ VueRouter.prototype.push = function push(location) {
 }
 import MyHome from "../components/MyHome.vue"
 import FileManager from '../components/FileManager.vue'
+import ViewFile from '../components/ViewFile.vue'
 import AvatarCreator from "../components/AvatarCreator.vue"
 import ArticleList from "../components/ArticleList.vue"
 import ArticleDetail from "../components/ArticleDetail.vue"
@@ -31,6 +32,12 @@ const router = new VueRouter({
                 currentPath: route.query.path || ''
             }),
             meta: { title: '网盘' },
+        },
+        {
+            name: 'viewFile',
+            path: '/viewFile',
+            component: ViewFile,
+            meta: { title: '文件预览' },
         },
         {
             name: 'avatar',

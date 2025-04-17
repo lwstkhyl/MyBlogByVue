@@ -218,6 +218,13 @@
               @click.stop="downloadFile(row.path, row.type)"
             >下载</el-button>
             <el-button 
+              v-show="can_view(row.path, row.type)"
+              type="info" 
+              size="mini"
+              :disabled="loadingStates.delete"
+              @click.stop="viewFile(row.path)"
+            >预览</el-button>
+            <el-button 
               v-show="isLoggedIn"
               type="danger" 
               size="mini"
@@ -234,10 +241,10 @@
 
 <script>
 import axios from 'axios'
-import {mapState, mapGetters, mapActions, mapMutations} from 'vuex';
-import { Message } from 'element-ui';
-import {baseURL, timeout} from '../../config/config'
+import {mapState, mapActions, } from 'vuex';
+import {baseURL, } from '../../config/config'
 import request from '../api/request';
+import {can_view} from '../utils/fileType';
 import {encodeFileName} from '../utils/crypto';
 import {formatSize, formatTime, formatSpeed, formatTime_hms} from '../utils/formatters';
 // import FileUpload from './FileUpload.vue'
@@ -257,9 +264,9 @@ export default {
       uploadFilesList: [], //上传文件列表
       uploadFilesListVisible: false, //上传文件列表可见性
       formatSize, formatTime, formatSpeed, formatTime_hms, //格式化函数
+      can_view,
     }
   },
-
   computed: {
     ...mapState('auth', {isLoggedIn: 'token'}),
     ...mapState('pan', ['loadingStates']),
@@ -552,6 +559,17 @@ export default {
           }
           return rowName;
       },
+
+    //预览
+    viewFile(path) {
+      const url = this.$router.resolve({
+          path: '/viewFile',
+          query: {
+              src: `${baseURL}/api/download/${encodeURIComponent(path)}`
+          }
+      });
+      window.open(url.href, '_blank');
+    },
 
     //单选下载
     async downloadFile(path, type) {

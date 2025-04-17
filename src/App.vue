@@ -3,6 +3,7 @@
     <!-- 回到顶部按钮 -->
     <el-backtop 
       :visibility-height="70"
+      :style="`${$route.path.startsWith('/viewFile') ? 'display:none;': ''}`"
     ></el-backtop>
     <!-- 遮罩层 -->
     <transition name="showMask">
@@ -19,6 +20,7 @@
       @mouseover="hover_btn"
       class="sidebar-toggle el-icon-s-operation"
       ref="SidebarBtn"
+      :style="`${$route.path.startsWith('/viewFile') ? 'display:none;': ''}`"
     ></i>
     <!-- 登录弹窗 -->
     <el-dialog
@@ -60,6 +62,7 @@
       :class="{ 'sidebar-show': showSidebar }"
       width="200px"
       ref="aside"
+      :style="`${$route.path.startsWith('/viewFile') ? 'display:none;': ''}`"
     >
       <div 
         ref="sidebar"
@@ -120,6 +123,7 @@
         class="header" 
         v-show="!isMobile"
         ref="header"
+        :style="`${$route.path.startsWith('/viewFile') ? 'display:none;': ''}`"
       >
         <div :class="['header-content', { 'container': isDesktop }]">
           <!-- 用户信息 -->

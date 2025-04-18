@@ -1,24 +1,29 @@
 <template>
     <div class="view-file">
+        <p v-if="isLoading" class="loading">加载中<i>...</i></p>
         <vue-office-docx
             v-show="type.word"
             :src="type.word"
+            @rendered="renderHandler"
             @error="errorHandler"
         />
         <vue-office-excel
             v-show="type.excel"
             :src="type.excel"
+            @rendered="renderHandler"
             @error="errorHandler"
             style="height:90vh"
         />
         <vue-office-pdf
             v-show="type.pdf"
             :src="type.pdf"
+            @rendered="renderHandler"
             @error="errorHandler"
         />
         <vue-office-pptx
             v-show="type.pptx"
             :src="type.pptx"
+            @rendered="renderHandler"
             @error="errorHandler"
             style="height:90vh"
         />
@@ -44,6 +49,7 @@ export default {
                 pptx:'',
             },
             viewFileSrc: this.$route.query.src,
+            isLoading: false,
         }
     },
     components: {VueOfficeDocx, VueOfficeExcel, VueOfficePdf, VueOfficePptx},
@@ -51,6 +57,7 @@ export default {
         viewFileSrc:{
             handler(newVal){
                 if(!newVal) return;
+                this.isLoading = true;
                 const type = matchFileType(newVal)
                 this.type[type] = newVal;
             },
@@ -58,6 +65,9 @@ export default {
         }
     },
     methods:{
+        renderHandler(){
+            this.isLoading = false;
+        },
         errorHandler(){
             this.$message.error("预览文件失败");
         },

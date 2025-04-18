@@ -186,7 +186,7 @@
           <p v-if="loadingStates.fileList" class="loading">加载中<i>...</i></p>
           <p v-else>{{emptyText}}</p>
         </div>
-        <el-table-column type="selection" width="55"></el-table-column>
+        <el-table-column type="selection" width="45"></el-table-column>
         <el-table-column prop="name" label="名称">
           <template v-slot="{ row }">
             <span 
@@ -199,17 +199,17 @@
             </span>
           </template>
         </el-table-column>
-        <el-table-column prop="size" label="大小" width="120">
+        <el-table-column prop="size" label="大小" width="100">
           <template v-slot="{ row }">
             {{ row.type === 'directory' ? '-' : formatSize(row.size) }}
           </template>
         </el-table-column>
-        <el-table-column prop="ctimeMs" label="修改时间" width="240">
+        <el-table-column prop="ctimeMs" label="修改时间" width="160">
           <template v-slot="{ row }">
             {{ formatTime(row.ctimeMs) }}
           </template>
         </el-table-column>
-        <el-table-column label="操作" width="180">
+        <el-table-column label="操作" width="220">
           <template v-slot="{ row }">
             <el-button 
               size="mini"
@@ -218,13 +218,6 @@
               @click.stop="downloadFile(row.path, row.type)"
             >下载</el-button>
             <el-button 
-              v-show="can_view(row.path, row.type)"
-              type="info" 
-              size="mini"
-              :disabled="loadingStates.delete"
-              @click.stop="viewFile(row.path)"
-            >预览</el-button>
-            <el-button 
               v-show="isLoggedIn"
               type="danger" 
               size="mini"
@@ -232,6 +225,13 @@
               :disabled="loadingStates.delete"
               @click.stop="deleteFile(row.path)"
             >删除</el-button>
+            <el-button 
+              v-show="can_view(row.path, row.type)"
+              type="info" 
+              size="mini"
+              :disabled="loadingStates.delete"
+              @click.stop="viewFile(row.path)"
+            >预览</el-button>
           </template>
         </el-table-column>
       </el-table>

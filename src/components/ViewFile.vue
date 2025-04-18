@@ -9,6 +9,7 @@
             v-show="type.excel"
             :src="type.excel"
             @error="errorHandler"
+            style="height:90vh"
         />
         <vue-office-pdf
             v-show="type.pdf"
@@ -19,14 +20,15 @@
             v-show="type.pptx"
             :src="type.pptx"
             @error="errorHandler"
+            style="height:90vh"
         />
     </div>
 </template>
 <script>
-import VueOfficeDocx from '@vue-office/docx'
-import '@vue-office/docx/lib/index.css'
 import VueOfficeExcel from '@vue-office/excel'
 import '@vue-office/excel/lib/index.css'
+import VueOfficeDocx from '@vue-office/docx'
+import '@vue-office/docx/lib/index.css'
 import VueOfficePdf from '@vue-office/pdf'
 import VueOfficePptx from '@vue-office/pptx'
 
@@ -62,3 +64,8 @@ export default {
     }
 }
 </script>
+<style scoped>
+canvas.x-spreadsheet-table{
+    height: 200px !important;
+}
+</style>

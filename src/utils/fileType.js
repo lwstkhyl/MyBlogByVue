@@ -24,7 +24,7 @@ export function matchFileType(fileName, type = 'file') {
         { 'typeName': 'excel', 'types': ['xlsx'] },
         { 'typeName': 'word', 'types': ['docx'] },
         { 'typeName': 'pdf', 'types': ['pdf'] },
-        { 'typeName': 'ppt', 'types': ['ppt'] },
+        { 'typeName': 'pptx', 'types': ['pptx'] },
         // 视频类型
         { 'typeName': 'video', 'types': ['mp4', 'm2v', 'mkv'] },
         // 音频

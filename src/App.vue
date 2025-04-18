@@ -2,8 +2,8 @@
   <div id="app">
     <!-- 回到顶部按钮 -->
     <el-backtop 
+      v-if="!$route.path.startsWith('/viewFile')"
       :visibility-height="70"
-      :style="`${$route.path.startsWith('/viewFile') ? 'display:none;': ''}`"
     ></el-backtop>
     <!-- 遮罩层 -->
     <transition name="showMask">
@@ -16,11 +16,11 @@
     </transition>
     <!-- 固定侧边栏切换按钮 -->
     <i 
+      v-if="!$route.path.startsWith('/viewFile')"
       @click="toggleSidebar" 
       @mouseover="hover_btn"
       class="sidebar-toggle el-icon-s-operation"
       ref="SidebarBtn"
-      :style="`${$route.path.startsWith('/viewFile') ? 'display:none;': ''}`"
     ></i>
     <!-- 登录弹窗 -->
     <el-dialog
@@ -58,11 +58,11 @@
     </el-dialog>
     <!-- 侧边栏 -->
     <el-aside 
+      v-if="!$route.path.startsWith('/viewFile')"
       class="sidebar"
       :class="{ 'sidebar-show': showSidebar }"
       width="200px"
       ref="aside"
-      :style="`${$route.path.startsWith('/viewFile') ? 'display:none;': ''}`"
     >
       <div 
         ref="sidebar"
@@ -120,10 +120,10 @@
     >
       <!-- 顶部导航栏 -->
       <el-header 
+        v-if="!$route.path.startsWith('/viewFile')"
         class="header" 
         v-show="!isMobile"
         ref="header"
-        :style="`${$route.path.startsWith('/viewFile') ? 'display:none;': ''}`"
       >
         <div :class="['header-content', { 'container': isDesktop }]">
           <!-- 用户信息 -->

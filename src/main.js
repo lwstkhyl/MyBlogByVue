@@ -5,6 +5,8 @@ import store from './store';
 import ElementUI from 'element-ui';
 import 'element-ui/lib/theme-chalk/index.css';
 import { longpress } from './directives/longpress';
+// import MetaInfo from 'vue-meta-info'
+// Vue.use(MetaInfo)
 Vue.use(router);
 Vue.use(ElementUI);
 Vue.directive('longpress', longpress);

@@ -184,10 +184,12 @@
 <script>
 import {mapState, mapActions, mapMutations} from 'vuex';
 import {encryptPassword} from './utils/crypto'
+// import {getMetaInfo} from './utils/seo'
 import request from './api/request';
 import {userName, userAvatar, userURL, repURL} from '../config/config'
 
 export default {
+  // metaInfo: getMetaInfo(),
   data() {
     return {
       userName, userAvatar, userURL, repURL, //用户信息

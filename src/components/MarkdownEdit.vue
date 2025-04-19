@@ -354,6 +354,6 @@ input, input::-webkit-input-placeholder, textarea, textarea::-webkit-input-place
 /* 对话框滚动条 */
 .el-dialog__body {
     overflow-y: auto;
-    height: 60vh;
+    max-height: 60vh;
 }
 </style>

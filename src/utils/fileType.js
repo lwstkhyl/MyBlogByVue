@@ -51,7 +51,9 @@ export function can_view(fileName, type = 'file') {
     const file_type = matchFileType(fileName, type);
     if (['word', 'pdf', 'excel', 'pptx',].includes(file_type))
         return 'open';
-    else if (['image', 'txt', 'video',].includes(file_type))
-        return 'noOpen';
-    return false;
+    else if (['image'].includes(file_type))
+        return 'img';
+    else if (['txt'].includes(file_type))
+        return 'txt';
+    else return false;
 }

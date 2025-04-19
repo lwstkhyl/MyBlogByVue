@@ -236,6 +236,11 @@
         </el-table-column>
       </el-table>
     </div>
+    <el-image-viewer
+      v-if="visibleImg"
+      :url-list="[viewImgSrc]"
+      :on-close="closeImgViewer"
+    />
   </div>
 </template>
 
@@ -246,12 +251,17 @@ import {baseURL, } from '../../config/config'
 import request from '../api/request';
 import {can_view} from '../utils/fileType';
 import {encodeFileName} from '../utils/crypto';
+import {disableWindowScroll, enableWindowScroll} from '../utils/pageScroll';
 import {formatSize, formatTime, formatSpeed, formatTime_hms} from '../utils/formatters';
+// import ViewFileInWindow from './ViewFileInWindow.vue'
 // import FileUpload from './FileUpload.vue'
 
 export default {
   name: 'FileManager',
   props: ['currentPath'],
+  components: {
+    'el-image-viewer': () => import('element-ui/packages/image/src/image-viewer')
+  },
   data() {
     return {
       files: [], //文件列表
@@ -263,6 +273,10 @@ export default {
       folderName: '', //新建文件夹名称
       uploadFilesList: [], //上传文件列表
       uploadFilesListVisible: false, //上传文件列表可见性
+      viewImgSrc: '', //预览的文件src(img)
+      viewTxtSrc: '', //预览的文件src(txt)
+      visibleImg: false, //预览img
+      visibleTxt: false, //预览txt
       formatSize, formatTime, formatSpeed, formatTime_hms, //格式化函数
       can_view,
     }
@@ -537,38 +551,55 @@ export default {
     },
     rowStyle({row,rowIndex}) {
       Object.defineProperty(row, 'rowIndex', {
-          value: rowIndex, 
-          writable: true,
-          enumerable: false
-          })
-      },
+        value: rowIndex, 
+        writable: true,
+        enumerable: false
+        })
+    },
     rowClick(row, column, event) {
-          let refsElTable = this.$refs.fileTable;
-          let findRow = this.selectedFiles.find(c => c.rowIndex == row.rowIndex);
-          if (findRow) {
-              refsElTable.toggleRowSelection(row, false);
-              return;
-          }
-          refsElTable.toggleRowSelection(row,true);
-      },
+        let refsElTable = this.$refs.fileTable;
+        let findRow = this.selectedFiles.find(c => c.rowIndex == row.rowIndex);
+        if (findRow) {
+            refsElTable.toggleRowSelection(row, false);
+            return;
+        }
+        refsElTable.toggleRowSelection(row,true);
+    },
     rowClassName({ row,  rowIndex }) {
-          let rowName = "",
-          findRow = this.selectedFiles.find(c => c.rowIndex === row.rowIndex);
-          if (findRow) {
-              rowName = "current-row "; 
-          }
-          return rowName;
-      },
+        let rowName = "",
+        findRow = this.selectedFiles.find(c => c.rowIndex === row.rowIndex);
+        if (findRow) {
+            rowName = "current-row "; 
+        }
+        return rowName;
+    },
 
     //预览
     viewFile(path) {
-      const url = this.$router.resolve({
-          path: '/viewFile',
-          query: {
-              src: `${baseURL}/api/download/${encodeURIComponent(path)}`
-          }
-      });
-      window.open(url.href, '_blank');
+      const fileType = can_view(path);
+      if(fileType === 'open'){ //在新窗口打开
+        const url = this.$router.resolve({
+            path: '/viewFile',
+            query: {
+                src: `${baseURL}/api/download/${encodeURIComponent(path)}`
+            }
+        });
+        window.open(url.href, '_blank');
+      } else if(fileType === 'img'){ //图片
+        this.viewImgSrc = `${baseURL}/api/viewFile/${encodeURIComponent(path)}?time=${Date.now()}`;
+        this.visibleImg = true;
+        disableWindowScroll();
+      } else if(fileType === 'txt'){ //txt
+        this.viewTxtSrc = `${baseURL}/api/viewFile/${encodeURIComponent(path)}?time=${Date.now()}`;
+        this.visibleTxt = true;
+      } else {
+        this.$message.error('该类型文件不可预览');
+      }
+    },
+    //关闭图片预览窗口
+    closeImgViewer(){
+      this.visibleImg = false;
+      enableWindowScroll();
     },
 
     //单选下载

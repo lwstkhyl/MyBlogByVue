@@ -2,7 +2,12 @@
   <div class="file-manager">
     <!-- 新建文件夹组件 -->
     <el-dialog title="新建文件夹" :visible.sync="visible">
-      <el-input v-model="folderName" placeholder="输入文件夹名称" @keyup.enter.native="createFolder"></el-input>
+      <el-input 
+        ref="newFolderInput"
+        v-model="folderName" 
+        placeholder="输入文件夹名称" 
+        @keyup.enter.native="createFolder"
+      ></el-input>
       <div slot="footer" style="text-align: center;">
         <el-button 
           type="primary" 
@@ -109,7 +114,7 @@
         <el-button 
           v-show="isLoggedIn" 
           type="primary"
-          @click="visible = true"
+          @click="visible = true; $nextTick(() => $refs.newFolderInput.focus())"
         >新建文件夹</el-button>
         <!-- 显示上传列表 -->
         <el-button 
@@ -310,13 +315,18 @@ export default {
     }
   },
 
-  async mounted() {
+  // mounted() {
+  //   this.handleRefresh();
+  // },
+
+  activated(){
     this.handleRefresh();
   },
 
   methods: {
     ...mapActions('pan', ['withLoading']),
-
+    ...mapActions('auth', ['isLogin', ]),
+    
     //加载文件列表
     async loadFiles() {
       this.files = [];
@@ -361,6 +371,7 @@ export default {
 
     //刷新
     async handleRefresh(){
+      await this.isLogin();
       await this.withLoading({
         type: 'refresh',
         fn: async () => {

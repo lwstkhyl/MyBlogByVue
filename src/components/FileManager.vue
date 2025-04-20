@@ -18,6 +18,24 @@
       </div>
     </el-dialog>
 
+    <!-- 重命名文件夹组件 -->
+    <el-dialog title="重命名文件夹" :visible.sync="renameVisible">
+      <el-input 
+        ref="renameDirInput"
+        v-model="renameName" 
+        placeholder="输入文件夹名称" 
+        @keyup.enter.native="renameDir"
+      ></el-input>
+      <div slot="footer" style="text-align: center;">
+        <el-button 
+          type="primary" 
+          @click="renameDir"
+          :loading="loadingStates.rename"
+          :disabled="loadingStates.rename" 
+        >确认</el-button>
+      </div>
+    </el-dialog>
+
     <!-- 上传文件区域 -->
     <el-upload
       v-show="isLoggedIn"
@@ -237,15 +255,34 @@
               :disabled="loadingStates.delete"
               @click.stop="viewFile(row.path)"
             >预览</el-button>
+            <el-button 
+              v-show="row.type === 'directory'"
+              type="warning" 
+              size="mini"
+              @click.stop="renameVisible = true; $nextTick(() => $refs.renameDirInput.focus())"
+            >重命名</el-button>
+              <!-- :disabled="loadingStates.delete" -->
           </template>
         </el-table-column>
       </el-table>
     </div>
+    <!-- 图片预览 -->
     <el-image-viewer
       v-if="visibleImg"
       :url-list="[viewImgSrc]"
       :on-close="closeImgViewer"
     />
+    <!-- txt预览 -->
+    <el-dialog title="txt预览" :visible.sync="visibleTxt" class="txt-viewer">
+      <h3>文件名：{{viewTxtSrc.title}}</h3>
+      <div style="white-space: pre-wrap;">{{ viewTxtSrc.content }}</div>
+      <div slot="footer" style="text-align: center;">
+        <el-button 
+          type="primary" 
+          @click="closeTxtViewer"
+        >关闭</el-button>
+      </div>
+    </el-dialog>
   </div>
 </template>
 
@@ -254,7 +291,7 @@ import axios from 'axios'
 import {mapState, mapActions, } from 'vuex';
 import {baseURL, } from '../../config/config'
 import request from '../api/request';
-import {can_view} from '../utils/fileType';
+import {can_view, getFileName} from '../utils/fileType';
 import {encodeFileName} from '../utils/crypto';
 import {disableWindowScroll, enableWindowScroll} from '../utils/pageScroll';
 import {formatSize, formatTime, formatSpeed, formatTime_hms} from '../utils/formatters';
@@ -276,10 +313,12 @@ export default {
       selectedFiles: [], //表格中已选中的文件
       visible: false, //新建文件夹窗口
       folderName: '', //新建文件夹名称
+      renameVisible: false, //重命名文件夹窗口
+      renameName: '', //重命名文件夹名称
       uploadFilesList: [], //上传文件列表
       uploadFilesListVisible: false, //上传文件列表可见性
-      viewImgSrc: '', //预览的文件src(img)
-      viewTxtSrc: '', //预览的文件src(txt)
+      viewImgSrc: '', //预览的图片url
+      viewTxtSrc: {title:'', content:"", }, //预览的txt文件内容和标题
       visibleImg: false, //预览img
       visibleTxt: false, //预览txt
       formatSize, formatTime, formatSpeed, formatTime_hms, //格式化函数
@@ -496,6 +535,31 @@ export default {
       });
     },
 
+    //重命名文件夹
+    async renameDir(){
+      if (!this.renameName.trim()) return this.$message.error('文件夹名不能为空');
+      await this.withLoading({
+        type: 'rename',
+        fn: async () => {
+          let isSuccess = true;
+          try{
+            await request.post('/rename', {
+              folderPath: this.currentPath,
+              folderName: this.folderName.trim()
+            });
+            this.folderName = '';
+            this.visible = false;
+            this.$message.success('创建成功');
+          } catch (err) {
+            isSuccess = false;
+            this.$message.error(`创建失败${err.response?'：'+err.response.data.error: ''}`);
+          }
+          if(!isSuccess) return;
+          this.handleRefresh();
+        }
+      });
+    },
+
     //删除单个文件
     async deleteFile(path) {
       try{
@@ -586,7 +650,7 @@ export default {
     },
 
     //预览
-    viewFile(path) {
+    async viewFile(path) {
       const fileType = can_view(path);
       if(fileType === 'open'){ //在新窗口打开
         const url = this.$router.resolve({
@@ -601,8 +665,14 @@ export default {
         this.visibleImg = true;
         disableWindowScroll();
       } else if(fileType === 'txt'){ //txt
-        this.viewTxtSrc = `${baseURL}/api/viewFile/${encodeURIComponent(path)}?time=${Date.now()}`;
-        this.visibleTxt = true;
+        try{
+          const res = await request.get(`${baseURL}/api/viewFile/${encodeURIComponent(path)}?time=${Date.now()}`);
+          this.viewTxtSrc.content = res.data;
+          this.viewTxtSrc.title = getFileName(path);
+          this.visibleTxt = true;
+        }catch(err){
+          this.$message.error('无法获取该文件');
+        }
       } else {
         this.$message.error('该类型文件不可预览');
       }
@@ -611,6 +681,10 @@ export default {
     closeImgViewer(){
       this.visibleImg = false;
       enableWindowScroll();
+    },
+    //关闭txt预览窗口
+    closeTxtViewer(){
+      this.visibleTxt = false;
     },
 
     //单选下载
@@ -725,5 +799,13 @@ p.loading{
 /* 取消多选框选中动画 */
 .el-checkbox__inner, .el-checkbox__inner::after{
   transition: transform 0s !important;
+}
+/* txt预览对话框 */
+.txt-viewer .el-dialog__body{
+  height: 50vh;
+  overflow: auto;
+}
+.txt-viewer .el-dialog__body{
+  padding-top: 0;
 }
 </style>

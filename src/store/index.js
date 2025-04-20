@@ -50,7 +50,8 @@ const pan = {
             refresh: false,
             delete: false,
             createFolder: false,
-            download: false
+            download: false,
+            rename: false,
         }
     },
     actions: {

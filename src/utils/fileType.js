@@ -1,3 +1,9 @@
+export function getFileName(filePath) {
+    filePath = decodeURIComponent(filePath)
+    const lastPath = filePath.substr(filePath.lastIndexOf('/') + 1, filePath.length);
+    const fileName = lastPath.split('?')[0];
+    return fileName;
+}
 export function matchFileType(fileName, type = 'file') {
     if (type !== 'file') return false;
     let suffix = '';

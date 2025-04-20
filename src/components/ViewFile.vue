@@ -69,6 +69,7 @@ export default {
             this.isLoading = false;
         },
         errorHandler(){
+            this.isLoading = false;
             this.$message.error("预览文件失败");
         },
     }

@@ -232,7 +232,7 @@
             {{ formatTime(row.ctimeMs) }}
           </template>
         </el-table-column>
-        <el-table-column label="操作" width="290">
+        <el-table-column label="操作" :width="`${isLoggedIn?290:200}`">
           <template v-slot="{ row }">
             <el-button 
               size="mini"

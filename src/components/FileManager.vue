@@ -144,7 +144,7 @@
         <el-button 
           v-show="selectedFiles.length" 
           type="primary" plain
-          :disabled="loadingStates.delete || loadingStates.download"
+          :disabled="loadingStates.delete || loadingStates.download || loadingStates.rename"
           :loading="loadingStates.download"
           @click="downloadSelected"
         >下载选中文件</el-button>
@@ -152,8 +152,8 @@
         <el-button 
           v-show="selectedFiles.length && isLoggedIn"
           type="danger" plain
+          :disabled="loadingStates.delete || loadingStates.rename"
           :loading="loadingStates.delete"
-          :disabled="loadingStates.delete"
           @click="handleDelete"
         >删除选中文件</el-button>
       </el-col>
@@ -236,7 +236,7 @@
           <template v-slot="{ row }">
             <el-button 
               size="mini"
-              :disabled="loadingStates.delete || loadingStates.download"
+              :disabled="loadingStates.delete || loadingStates.download || loadingStates.rename"
               :loading="loadingStates.download"
               @click.stop="downloadFile(row.path, row.type)"
             >下载</el-button>
@@ -244,8 +244,8 @@
               v-show="isLoggedIn"
               type="danger" 
               size="mini"
+              :disabled="loadingStates.delete || loadingStates.rename"
               :loading="loadingStates.delete"
-              :disabled="loadingStates.delete"
               @click.stop="deleteFile(row.path)"
             >删除</el-button>
             <el-button 
@@ -259,7 +259,7 @@
               v-show="can_view(row.path, row.type)"
               type="info" 
               size="mini"
-              :disabled="loadingStates.delete"
+              :disabled="loadingStates.delete || loadingStates.rename"
               @click.stop="viewFile(row.path)"
             >预览</el-button>
           </template>

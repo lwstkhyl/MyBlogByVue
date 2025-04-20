@@ -232,7 +232,7 @@
             {{ formatTime(row.ctimeMs) }}
           </template>
         </el-table-column>
-        <el-table-column label="操作" width="220">
+        <el-table-column label="操作" width="290">
           <template v-slot="{ row }">
             <el-button 
               size="mini"
@@ -249,19 +249,19 @@
               @click.stop="deleteFile(row.path)"
             >删除</el-button>
             <el-button 
+              v-show="isLoggedIn"
+              type="warning" 
+              size="mini"
+              :disabled="loadingStates.rename"
+              @click.stop="clickRename(row.name, row.type)"
+            >重命名</el-button>
+            <el-button 
               v-show="can_view(row.path, row.type)"
               type="info" 
               size="mini"
               :disabled="loadingStates.delete"
               @click.stop="viewFile(row.path)"
             >预览</el-button>
-            <el-button 
-              v-show="row.type === 'directory'"
-              type="warning" 
-              size="mini"
-              @click.stop="renameVisible = true; $nextTick(() => $refs.renameDirInput.focus())"
-            >重命名</el-button>
-              <!-- :disabled="loadingStates.delete" -->
           </template>
         </el-table-column>
       </el-table>
@@ -313,8 +313,10 @@ export default {
       selectedFiles: [], //表格中已选中的文件
       visible: false, //新建文件夹窗口
       folderName: '', //新建文件夹名称
-      renameVisible: false, //重命名文件夹窗口
-      renameName: '', //重命名文件夹名称
+      renameVisible: false, //重命名文件窗口
+      renameName: '', //重命名文件名称
+      renameOldName: '', //重命名前文件名称
+      renameFileIsDir: false, //重命名的文件是不是文件夹
       uploadFilesList: [], //上传文件列表
       uploadFilesListVisible: false, //上传文件列表可见性
       viewImgSrc: '', //预览的图片url
@@ -512,7 +514,8 @@ export default {
     
     //创建文件夹
     async createFolder(){
-      if (!this.folderName.trim()) return this.$message.error('文件夹名不能为空');
+      this.folderName = this.folderName.trim();
+      if (!this.folderName) return this.$message.error('文件夹名不能为空');
       await this.withLoading({
         type: 'createFolder',
         fn: async () => {
@@ -520,7 +523,7 @@ export default {
           try{
             await request.post('/create', {
               folderPath: this.currentPath,
-              folderName: this.folderName.trim()
+              folderName: this.folderName,
             });
             this.folderName = '';
             this.visible = false;
@@ -535,24 +538,35 @@ export default {
       });
     },
 
+    //点击重命名按钮
+    clickRename(name, type){
+      this.renameOldName = name;
+      this.renameName = name;
+      this.renameFileIsDir = (type === 'directory');
+      this.renameVisible = true; 
+      this.$nextTick(() => this.$refs.renameDirInput.focus());
+    },
+
     //重命名文件夹
     async renameDir(){
-      if (!this.renameName.trim()) return this.$message.error('文件夹名不能为空');
+      this.renameName = this.renameName.trim()
+      if (!this.renameName) return this.$message.error('文件夹名不能为空');
       await this.withLoading({
         type: 'rename',
         fn: async () => {
           let isSuccess = true;
           try{
             await request.post('/rename', {
-              folderPath: this.currentPath,
-              folderName: this.folderName.trim()
+              currentPath: this.currentPath,
+              oldName: this.renameOldName,
+              newName: this.renameName,
+              isDir: this.renameFileIsDir,
             });
-            this.folderName = '';
-            this.visible = false;
-            this.$message.success('创建成功');
+            this.renameVisible = false;
+            this.$message.success('重命名成功');
           } catch (err) {
             isSuccess = false;
-            this.$message.error(`创建失败${err.response?'：'+err.response.data.error: ''}`);
+            this.$message.error(`重命名失败${err.response?'：'+err.response.data.error: ''}`);
           }
           if(!isSuccess) return;
           this.handleRefresh();

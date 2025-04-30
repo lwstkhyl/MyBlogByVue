@@ -1,6 +1,6 @@
 /* 文本 */
 .article-detail .content p {
-    color: #4d4d4d !important;
+    color: #606266 !important;
     font-weight: 400 !important;
     font-size: 16px !important;
     line-height: 26px !important;
@@ -20,7 +20,7 @@
 .article-detail .content h3,
 .article-detail .content h4,
 .article-detail .content h5 {
-    color: #4f4f4f !important;
+    color: #303133 !important;
     margin: 24px 0 8px !important;
     padding: 0 !important;
     font-weight: 600 !important;
@@ -136,35 +136,14 @@
 }
 
 /* 代码框内文字 */
-.article-detail .content pre {
-    background-color: #fafafa !important;
-    font-size: 14px !important;
-    line-height: 22px !important;
-    margin: 0 0 24px !important;
-    padding: 8px 16px 6px 56px !important;
-}
-
-.article-detail .content code span {
-    font-size: 14px !important;
-}
 
 .article-detail .content code,
 .article-detail .content code span {
-    line-height: 22px !important;
-    font-size: 14px !important;
     /* 字体 */
+    font-size: 14px;
+    line-height: 22px;
     font-family: Source Code Pro, DejaVu Sans Mono, Ubuntu Mono, Anonymous Pro, Droid Sans Mono, Menlo, Monaco, Consolas, Inconsolata, Courier, monospace, PingFang SC, Microsoft YaHei, sans-serif !important;
     font-feature-settings: normal !important;
-}
-
-/* 设置代码框内滚动条在code框上 */
-.article-detail .content pre {
-    overflow-x: hidden !important;
-}
-
-.article-detail .content pre code {
-    display: block !important;
-    overflow-x: auto !important;
 }
 
 /* 用单个`括起来的代码 */
@@ -201,4 +180,34 @@
 .article-detail .content hr {
     background-size: 100% 5px !important;
     margin: 16px 0 !important;
+}
+
+/* 代码行数 */
+
+.article-detail .content pre {
+    position: relative;
+    padding-left: 60px;
+    background-color: #f6f6f6;
+    line-height: 0;
+}
+
+.article-detail .content .pre-numbering {
+    position: absolute;
+    margin-bottom: 0 !important;
+    top: 14.5px;
+    left: 0;
+    border-right: 1px solid #c5c5c5;
+    background-color: #f6f6f6;
+    padding: 0;
+}
+
+.article-detail .content .pre-numbering li {
+    margin-top: 0 !important;
+    margin-bottom: 0 !important;
+    padding: 0 8px !important;
+    list-style: none;
+    color: #383a42;
+    font-size: 14px;
+    line-height: 22px;
+    font-family: Source Code Pro, DejaVu Sans Mono, Ubuntu Mono, Anonymous Pro, Droid Sans Mono, Menlo, Monaco, Consolas, Inconsolata, Courier, monospace, PingFang SC, Microsoft YaHei, sans-serif !important;
 }

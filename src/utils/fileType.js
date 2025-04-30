@@ -23,7 +23,7 @@ export function matchFileType(fileName, type = 'file') {
         // 图片类型
         { 'typeName': 'image', 'types': ['png', 'jpg', 'jpeg', 'bmp', 'gif', 'webp'] },
         // 文本类型
-        { 'typeName': 'txt', 'types': ['txt'] },
+        { 'typeName': 'txt', 'types': ['txt', 'py', 'r', 'sh'] },
         // 视频类型
         { 'typeName': 'video', 'types': ['mp4', 'm2v', 'mkv'] },
         // pdf

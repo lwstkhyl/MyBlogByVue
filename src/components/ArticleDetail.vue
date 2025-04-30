@@ -73,34 +73,56 @@
         </el-dialog>
         <!-- 标题和时间 -->
         <div class="header">
-            <p v-if="isLoading">加载文章列表中<i>...</i></p>
-            <span class="title">{{ article.title }}</span>
-            <span class="create-time">创建时间 {{ article.createTime }}</span>
-            <span class="update-time">修改时间 {{ article.updateTime }}</span>
+            <p v-if="isLoading" class="loading">加载文章列表中<i>...</i></p>
+            <h1 class="title" v-if="!isLoading">{{ article.title }}</h1>
+            <p class="time" v-if="!isLoading">
+                <span class="create-time">创建时间 {{ article.createTime }}</span>
+                <span class="update-time">修改时间 {{ article.updateTime }}</span>
+            </p>
         </div>
         <!-- 文章内容 -->
         <div 
-            class="content" 
+            class="content"
+            ref="contentRef"
             v-html="contentHTML"
+            v-if="!isLoading"
+            @click="handleImageClick"
+            v-highlight
         ></div>
+        <!-- 图片点击放大 -->
+        <el-image-viewer 
+            v-if="showViewer"
+            :url-list="imgUrlList"
+            :initial-index="imageIndex"
+            :on-close="closeImgViewer"
+        />
     </div>
 </template>
 
 <script>
 //md相关文件
 import {marked} from 'marked'
-import {renderImg} from '../utils/rendererMD'
+import 'highlight.js/styles/stackoverflow-light.css'
+
+import {renderImg, extractImg, renderCode, } from '../utils/rendererMD'
 const renderer = {
-    image(href, _title, text){
-        return renderImg(href, _title, text);
+    image(img){
+        return renderImg(img);
+    },
+    code(code){
+        return renderCode(code);        
     }
 }
-marked.use({ renderer: renderer })
+marked.use({ 
+    renderer: renderer,
+    // highlight: code => hljs.highlightAuto(code).value
+});
 import '../../public/css/markdown.css';
 //其它
 import {mapState, mapActions} from 'vuex';
 import request from '../api/request';
 import {formatTime, formatImg} from '../utils/formatters';
+import {disableWindowScroll, enableWindowScroll} from '../utils/pageScroll';
 import {deepClone} from '../utils/deepClone'
 import {tagsList} from '../utils/tagsList'
 import {loginCheck} from '../utils/loginCheck'
@@ -112,10 +134,16 @@ export default {
             contentHTML: '', //转换后文章内容
             isLoading: false, //正在加载文章内容
             id: '', //文章id
+            imgUrlList: [], //图片列表
+            showViewer: false, //点击放大图片
+            imageIndex: 0, //当前展示的是哪张图片
             changeArticleVisible: false, //修改文章对话框
             changeArticleForm: {}, //修改文章表单项
             formatTime, tagsList
         }
+    },
+    components: {
+        'el-image-viewer': () => import('element-ui/packages/image/src/image-viewer')
     },
     computed: {
         ...mapState('auth', {isLoggedIn: 'token'}),
@@ -144,7 +172,12 @@ export default {
                 this.article.content = formatImg(this.article.content);
                 this.article.createTime = formatTime(this.article.createTime);
                 this.article.updateTime = formatTime(this.article.updateTime);
+                this.imgUrlList = extractImg(this.article.content);
                 this.contentHTML = marked(this.article.content);
+                //等待DOM更新后绑定事件
+                this.$nextTick(() => {
+                    this.bindImageEvents();
+                });
             } catch(err) {
                 console.log(err); 
                 this.contentHTML = "";
@@ -153,6 +186,24 @@ export default {
                 return;
             }
             this.isLoading = false;
+        },
+        //图片点击放大相关
+        bindImageEvents() {
+            const images = this.$refs.contentRef.querySelectorAll('img');
+            images.forEach((img, index) => {
+                img.dataset.index = index;
+            });
+        },
+        handleImageClick(e) {
+            if (e.target.tagName === 'IMG') {
+                this.imageIndex = parseInt(e.target.dataset.index);
+                this.showViewer = true;
+                disableWindowScroll();
+            }
+        },
+        closeImgViewer(){
+            this.showViewer = false;
+            enableWindowScroll();
         },
         //点击更改文章内容按钮
         async clickChangeArticle(){
@@ -165,6 +216,7 @@ export default {
         //更改文章内容
         async changeArticle(){
             try {
+                this.changeArticleForm.updateTime = Date.now();
                 await request.patch(`/article/${this.id}`, this.changeArticleForm);
                 this.changeArticleVisible = false;
                 this.refresh();
@@ -186,5 +238,25 @@ export default {
 .changeArticle .el-dialog__body{
     padding-bottom: 5px !important;
     padding-top: 5px !important;
+}
+.article-detail .header {
+    margin-bottom: 10px;
+    margin-top: 10px;
+    padding: 0px;
+}
+.article-detail .header .title{
+    margin: 0 !important;
+    margin-bottom: 5px !important;
+}
+.article-detail .header .time{
+    margin: 0 !important;
+    font-size: 12px;
+    color: #909399;
+}
+.article-detail .header .time .create-time{
+    margin-right: 30px;
+}
+.article-detail .content img{
+    cursor: zoom-in;
 }
 </style>

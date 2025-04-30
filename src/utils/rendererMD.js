@@ -28,17 +28,22 @@ export const extractImg = (content) => {
 
 //渲染代码行数
 export const renderCode = ({ text, lang }) => {
-    const lines = text.split('\n');
-    // const lineNumbers = lines.map((_, index) =>
-    //     `<li class="code-line-number">${index + 1}</li>`
-    // ).join('');
     const highlighted = hljs.highlightAuto(text).value;
     return `
         <div class="code-block">
             <pre>
+                <div class="code-copy">复制</div>
                 <code class="hljs ${lang}">${highlighted}</code>
-                </pre>
-                </div>
-                `
-    // <ul class="code-number">${lineNumbers}</ul>
+            </pre>
+        </div>
+    `;
+};
+
+//超链接在新页面打开
+export const renderLink = ({ href, text }) => {
+    if (href.startsWith('#')) { //跳转至页面标题
+        return `<a href="javascript:;" class="title-a" data-target="${href.slice(1)}">${text}</a>`;
+    } else { //站外链接
+        return `<a href="${href}" target="_blank">${text}</a>`;
+    }
 };

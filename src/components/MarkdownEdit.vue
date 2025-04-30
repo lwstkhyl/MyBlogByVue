@@ -176,6 +176,7 @@
 import {mapState, mapActions} from 'vuex';
 import debounce from 'lodash.debounce'
 import request from '../api/request';
+import {copy, paste} from '../utils/copyPaste'
 import {funcDir, codeTypeList, get_size_map, size_map_default} from '../utils/markdownEdit'
 export default {
     data() {
@@ -211,28 +212,11 @@ export default {
                 this.newContent = funcDir[option](this.newContent, this.funcArgs);
             });
         }, 500),
-        paste(){
-            navigator.clipboard.readText()
-            .then((clipText) => {
-                this.content = clipText;
-                this.$message.success('粘贴成功');
-            })
-            .catch((err) => {
-                this.$message.error('粘贴失败');
-            });
+        async paste(){
+            this.content = await paste();
         },
         copy(){
-            try{
-                let $tempTextarea = document.createElement("textarea");
-                $tempTextarea.value = this.newContent;
-                document.body.appendChild($tempTextarea);
-                $tempTextarea.select();
-                document.execCommand("copy");
-                $tempTextarea.remove();
-                this.$message.success('复制成功');
-            } catch(err){
-                this.$message.error('复制失败');
-            }
+            copy(this.newContent);
         },
         sizeMapStr(){
             let res = '';

@@ -114,7 +114,7 @@ export default {
         isLoggedIn: {
             handler(newVal){
                 if(this.$router.currentRoute.fullPath !== '/article/upload') return;
-                if(!newVal) loginCheck(this, 'ArticleUpload');
+                if(!newVal) loginCheck.apply(this, ['ArticleUpload']);
             },
             immediate:true,
         }

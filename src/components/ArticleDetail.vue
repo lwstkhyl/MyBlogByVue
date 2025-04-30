@@ -71,9 +71,9 @@
                 >确认</el-button>
             </div>
         </el-dialog>
-        <!-- 标题和时间 -->
+        <!-- 标题和时间+正在加载文字 -->
         <div class="header">
-            <p v-if="isLoading" class="loading">加载文章列表中<i>...</i></p>
+            <p v-if="isLoading" class="loading">加载文章中<i>...</i></p>
             <h1 class="title" v-if="!isLoading">{{ article.title }}</h1>
             <p class="time" v-if="!isLoading">
                 <span class="create-time">创建时间 {{ article.createTime }}</span>
@@ -86,7 +86,7 @@
             ref="contentRef"
             v-html="contentHTML"
             v-if="!isLoading"
-            @click="handleImageClick"
+            @click="handleClick"
             v-highlight
         ></div>
         <!-- 图片点击放大 -->
@@ -103,24 +103,26 @@
 //md相关文件
 import {marked} from 'marked'
 import 'highlight.js/styles/stackoverflow-light.css'
-
-import {renderImg, extractImg, renderCode, } from '../utils/rendererMD'
+import {renderImg, extractImg, renderCode, renderLink} from '../utils/rendererMD'
 const renderer = {
     image(img){
         return renderImg(img);
     },
     code(code){
         return renderCode(code);        
-    }
+    },
+    link(link){
+        return renderLink(link);
+    },
 }
 marked.use({ 
     renderer: renderer,
-    // highlight: code => hljs.highlightAuto(code).value
 });
 import '../../public/css/markdown.css';
 //其它
 import {mapState, mapActions} from 'vuex';
 import request from '../api/request';
+import {copy} from '../utils/copyPaste'
 import {formatTime, formatImg} from '../utils/formatters';
 import {disableWindowScroll, enableWindowScroll} from '../utils/pageScroll';
 import {deepClone} from '../utils/deepClone'
@@ -164,7 +166,7 @@ export default {
                 this.id = '';
                 this.changeArticleForm = {};
                 this.$message.error('获取文章失败');
-                loginCheck(this, 'ArticleDetail', `${err.status === 403?"无权限":"文章不存在"}`, "/article");
+                loginCheck.apply(this, ['ArticleDetail', `${err.status === 403?"无权限":"文章不存在"}`, "/article"]);
                 this.isLoading = false;
                 return;
             }
@@ -187,20 +189,26 @@ export default {
             }
             this.isLoading = false;
         },
-        //图片点击放大相关
+        //给图片加索引
         bindImageEvents() {
             const images = this.$refs.contentRef.querySelectorAll('img');
             images.forEach((img, index) => {
                 img.dataset.index = index;
             });
         },
-        handleImageClick(e) {
-            if (e.target.tagName === 'IMG') {
+        //处理各种点击事件
+        handleClick(e) {
+            const t = e.target;
+            if (t.tagName === 'IMG') {
                 this.imageIndex = parseInt(e.target.dataset.index);
                 this.showViewer = true;
                 disableWindowScroll();
+            } else if(t.className === 'code-copy') {
+                copy(t.nextElementSibling.innerText);
             }
+            else return;
         },
+        //关闭图片预览
         closeImgViewer(){
             this.showViewer = false;
             enableWindowScroll();
@@ -208,7 +216,7 @@ export default {
         //点击更改文章内容按钮
         async clickChangeArticle(){
             if(!(await this.isLogin())) {
-                loginCheck(this, 'ArticleUpdate', '未登录', `/article/${this.id}`);
+                loginCheck.apply(this, ['ArticleUpdate', '未登录', `/article/${this.id}`]);
                 return;
             }
             this.changeArticleVisible = true;

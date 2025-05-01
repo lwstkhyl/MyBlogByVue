@@ -71,24 +71,36 @@
                 >确认</el-button>
             </div>
         </el-dialog>
-        <!-- 标题和时间+正在加载文字 -->
-        <div class="header">
-            <p v-if="isLoading" class="loading">加载文章中<i>...</i></p>
-            <h1 class="title" v-if="!isLoading">{{ article.title }}</h1>
-            <p class="time" v-if="!isLoading">
-                <span class="create-time">创建时间 {{ article.createTime }}</span>
-                <span class="update-time">修改时间 {{ article.updateTime }}</span>
-            </p>
+        <!-- 目录 -->
+        <div class="toc" v-if="!isLoading" ref="toc">
+            <p 
+                ref="tocItems"
+                v-for="(item, index) in toc"
+                :key="index"
+                :class="['toc-item', `toc-level-${item.level}`]"
+                @click="scrollTo(item.id)"
+            >{{ item.text }}</p>
         </div>
-        <!-- 文章内容 -->
-        <div 
-            class="content"
-            ref="contentRef"
-            v-html="contentHTML"
-            v-if="!isLoading"
-            @click="handleClick"
-            v-highlight
-        ></div>
+        <div :style="`padding-left: ${isLoading?'0':'290px'};`">
+            <!-- 标题和时间+正在加载文字 -->
+            <div class="header">
+                <p v-if="isLoading" class="loading">加载文章中<i>...</i></p>
+                <h1 class="title" v-if="!isLoading">{{ article.title }}</h1>
+                <p class="time" v-if="!isLoading">
+                    <span class="create-time">创建时间 {{ article.createTime }}</span>
+                    <span class="update-time">修改时间 {{ article.updateTime }}</span>
+                </p>
+            </div>
+            <!-- 文章内容 -->
+            <div 
+                class="content"
+                ref="contentRef"
+                v-html="contentHTML"
+                v-if="!isLoading"
+                @click="handleClick"
+                v-highlight
+            ></div>
+        </div>
         <!-- 图片点击放大 -->
         <el-image-viewer 
             v-if="showViewer"
@@ -103,7 +115,8 @@
 //md相关文件
 import {marked} from 'marked'
 import 'highlight.js/styles/stackoverflow-light.css'
-import {renderImg, extractImg, renderCode, renderLink} from '../utils/rendererMD'
+import {renderImg, extractImg, renderCode, renderLink, renderHeader} from '../utils/rendererMD'
+let idArr = []; //存储标题、给标题加id的数组
 const renderer = {
     image(img){
         return renderImg(img);
@@ -114,6 +127,9 @@ const renderer = {
     link(link){
         return renderLink(link);
     },
+    heading(heading){
+        return renderHeader(heading, idArr);
+    },
 }
 marked.use({ 
     renderer: renderer,
@@ -121,6 +137,7 @@ marked.use({
 import '../../public/css/markdown.css';
 //其它
 import {mapState, mapActions} from 'vuex';
+import debounce from 'lodash.debounce'
 import request from '../api/request';
 import {copy} from '../utils/copyPaste'
 import {formatTime, formatImg} from '../utils/formatters';
@@ -136,6 +153,7 @@ export default {
             contentHTML: '', //转换后文章内容
             isLoading: false, //正在加载文章内容
             id: '', //文章id
+            toc: [], //目录
             imgUrlList: [], //图片列表
             showViewer: false, //点击放大图片
             imageIndex: 0, //当前展示的是哪张图片
@@ -154,6 +172,7 @@ export default {
         ...mapActions('auth', ['isLogin', ]),
         //加载文章内容
         async refresh(){
+            idArr = []; //重置标题数组
             try{ //获取文章内容，初始化变量
                 this.isLoading = true;
                 const res = await request.get(`/article/${this.$route.params.id}`);
@@ -179,6 +198,9 @@ export default {
                 //等待DOM更新后绑定事件
                 this.$nextTick(() => {
                     this.bindImageEvents();
+                    this.generateToc();
+                    window.removeEventListener('scroll', this.handleScroll);
+                    window.addEventListener('scroll', this.handleScroll);
                 });
             } catch(err) {
                 console.log(err); 
@@ -189,13 +211,6 @@ export default {
             }
             this.isLoading = false;
         },
-        //给图片加索引
-        bindImageEvents() {
-            const images = this.$refs.contentRef.querySelectorAll('img');
-            images.forEach((img, index) => {
-                img.dataset.index = index;
-            });
-        },
         //处理各种点击事件
         handleClick(e) {
             const t = e.target;
@@ -205,8 +220,71 @@ export default {
                 disableWindowScroll();
             } else if(t.className === 'code-copy') {
                 copy(t.nextElementSibling.innerText);
+            } else if(t.className === 'title-a') {
+                this.scrollTo(t.dataset.target);
             }
             else return;
+        },
+        //生成目录
+        generateToc(){
+            const headers = document.querySelector('.article-detail').querySelectorAll('h3, h4, h5');
+            this.toc = Array.from(headers).map(header => {
+                return {
+                    id: header.id,
+                    text: header.innerText,
+                    level: header.tagName.slice(1),
+                    el: header,
+                }
+            });
+        },
+        //目录自动滚动
+        handleScroll: debounce(function(){
+            const scrollPosition = document.documentElement.scrollTop;
+            let currentIndex = null;
+            for(let i=this.toc.length-1;i>=0;i--){
+                if (scrollPosition >= this.toc[i].el.offsetTop-1) {
+                    currentIndex = i;
+                    break;
+                }
+            }
+            if(currentIndex===null){
+                this.$refs.tocItems.forEach((item) => item.classList.remove('current'));
+                this.$refs.toc.scrollTo({
+                    top: 0,
+                    behavior: 'smooth'
+                });
+            } else {
+                this.$refs.tocItems.forEach((item, index) => {
+                    if(index === currentIndex){
+                        item.classList.add('current');
+                        this.$refs.toc.scrollTo({
+                            top: item.offsetTop-this.$refs.toc.clientHeight/2+item.clientHeight/2,
+                            behavior: 'smooth'
+                        });
+                    } else {
+                        item.classList.remove('current');
+                    }
+                });
+            }
+        }, 500),
+        //点击标签滚动
+        scrollTo(id) {
+            const target = document.getElementById(id);
+            if (target) {
+                window.scrollTo({
+                    top: target.offsetTop,
+                    behavior: 'smooth'
+                });
+            } else {
+                this.$message.error('无法找到对应标题');
+            }
+        },
+        //给图片加索引
+        bindImageEvents() {
+            const images = this.$refs.contentRef.querySelectorAll('img');
+            images.forEach((img, index) => {
+                img.dataset.index = index;
+            });
         },
         //关闭图片预览
         closeImgViewer(){
@@ -266,5 +344,13 @@ export default {
 }
 .article-detail .content img{
     cursor: zoom-in;
+}
+.article-detail .toc{
+    z-index: 1;
+}
+.article-detail button,
+.article-detail header{
+    position: relative;
+    z-index: 2;
 }
 </style>

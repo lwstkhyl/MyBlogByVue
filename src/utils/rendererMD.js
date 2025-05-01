@@ -1,4 +1,5 @@
 import hljs from 'highlight.js'
+import { arrNum } from '../utils/utils'
 
 //渲染图片宽高
 export const renderImg = ({ href, text }) => {
@@ -17,11 +18,11 @@ export const renderImg = ({ href, text }) => {
 
 //提取文章图片
 export const extractImg = (content) => {
-    const imgReg = /!\[.*?\]\((.*?)\)/g
+    const imgReg = /!\[.*?\]\((.*?)\)/g;
     const imageList = [];
-    let match
+    let match;
     while ((match = imgReg.exec(content)) !== null) {
-        imageList.push(match[1])
+        imageList.push(match[1]);
     }
     return imageList;
 };
@@ -46,4 +47,13 @@ export const renderLink = ({ href, text }) => {
     } else { //站外链接
         return `<a href="${href}" target="_blank">${text}</a>`;
     }
+};
+
+//标题id
+export const renderHeader = ({ depth, text }, idArr) => {
+    let id = text.toLowerCase();
+    const idNum = arrNum(id, idArr);
+    idArr.push(id);
+    if (idNum !== 0) id = `${id}-${idNum}`;
+    return `<h${depth} id=${id}>${text}</h${depth}>`;
 };

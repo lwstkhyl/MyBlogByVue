@@ -37,19 +37,24 @@
     </el-dialog>
 
     <!-- 上传文件区域 -->
-    <el-upload
+    <div
       v-show="isLoggedIn"
-      class="upload-demo"
-      drag
-      action="#"
-      :show-file-list="false"
-      :multiple="true"
-      :before-upload="beforeUpload"
+      class="el-upload-dragger"
+      @drop="dropFile($event)"
+      @dragover="dragOverHandler($event)"
     >
-      <el-icon class="el-icon--upload"><upload-filled /></el-icon>
-      <div class="el-upload__text">拖拽或<em>点击上传文件</em></div>
-    </el-upload>
-
+      <div class="el-upload__text">
+      点击<em
+          type="primary"
+          @click="uploadFile"
+        >上传文件</em>
+        /
+        <em
+          type="primary"
+          @click="uploadDir"
+        >上传文件夹</em>或直接拖拽上传
+      </div>
+    </div>
     <!-- 上传文件列表 -->
     <el-dialog 
       title="上传文件列表" 
@@ -295,8 +300,7 @@ import {can_view, getFileName} from '../utils/fileType';
 import {encodeFileName} from '../utils/crypto';
 import {disableWindowScroll, enableWindowScroll} from '../utils/pageScroll';
 import {formatSize, formatTime, formatSpeed, formatTime_hms} from '../utils/formatters';
-// import ViewFileInWindow from './ViewFileInWindow.vue'
-// import FileUpload from './FileUpload.vue'
+import {getUuiD} from '../utils/utils';
 
 export default {
   name: 'FileManager',
@@ -441,7 +445,28 @@ export default {
     },
     
     //上传文件
-    beforeUpload(file) {
+    uploadFile(){
+      const input = document.createElement("input");
+      input.type = "file";
+      input.setAttribute("allowdirs", "true");
+      input.setAttribute("directory", "true");
+      input.style.cssText = "display:none";
+      input.multiple = true;
+      document.querySelector("body").appendChild(input);
+      input.click();
+      const _this = this;
+      input.onchange = async function (e) {
+        const files = e.target["files"];
+        for(const key in files){
+          if(files[key] instanceof File){
+            _this.uploadOneFile(files[key])
+          }
+        }
+        document.querySelector("body").removeChild(input);
+      }
+    },
+    uploadOneFile(file) {
+      file['uid'] = getUuiD()
       const fileList = {}
       for (const key in file) {
         fileList[key] = file[key]
@@ -451,7 +476,6 @@ export default {
       this.httpRequest(file, parms => { 
         this.showProgress(fileList, parms)
       })
-      return false// 阻止 el-upload的默认上传
     },
     showProgress(file, parms) {
       const { progress, status, time, speed, cancel } = parms
@@ -471,11 +495,11 @@ export default {
       // 编码文件名
       const encodedFile = new File([file], encodeFileName(file.name), {
         type: file.type,
-        lastModified: file.lastModified
+        lastModified: file.lastModified,
       });
       const formData = new FormData();
       formData.append('files', encodedFile);
-      formData.append('path', encodeURIComponent(this.currentDir));
+      formData.append('path', encodeURIComponent(file.webkitRelativePath?file.webkitRelativePath:this.currentDir));
       // 声明计算进度/速度/剩余时间的变量
       let progress = 0; //初始进度
       let lastLoaded = 0; //上一时刻已上传的大小
@@ -511,6 +535,15 @@ export default {
         callback({ progress, status: 'error' })
       });
     },
+    uploadDir(){
+
+    },
+    dropFile(){
+
+    },
+    dragOverHandler(){
+
+    },
     
     //创建文件夹
     async createFolder(){
@@ -534,6 +567,24 @@ export default {
           }
           if(!isSuccess) return;
           this.handleRefresh();
+        }
+      });
+    },
+    //创建文件夹（指定名称和路径）
+    async createFolderFunc(currentPath, folderName){
+      folderName = folderName.trim();
+      if (!folderName) return this.$message.error('文件夹名不能为空');
+      await this.withLoading({
+        type: 'createFolder',
+        fn: async () => {
+          try{
+            await request.post('/create', {
+              folderPath: currentPath,
+              folderName: folderName,
+            });
+          } catch (err) {
+            this.$message.error(`创建失败：${currentPath}/${folderName}`);
+          }
         }
       });
     },
@@ -749,6 +800,15 @@ export default {
 /* 上传区域100%宽度 */
 .upload-demo, .el-upload, .el-upload-dragger{
   width: 100% !important;
+}
+.el-upload-dragger{
+  cursor: default !important;
+}
+.el-upload__text{
+  padding-top: 20px;
+}
+.el-upload__text em{
+  cursor: pointer !important;
 }
 /* 文件列表 */
 .file-item {

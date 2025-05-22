@@ -44,7 +44,7 @@
       @dragover="dragOverHandler($event)"
     >
       <div class="el-upload__text">
-      点击<em
+      <p>点击<em
           type="primary"
           @click="uploadFile"
         >上传文件</em>
@@ -52,7 +52,10 @@
         <em
           type="primary"
           @click="uploadDir"
-        >上传文件夹</em>或直接拖拽上传
+        >上传文件夹</em>或直接拖拽上传</p>
+        <p class="small">文件夹同名则追加添加文件</p>
+        <p class="small">同名文件覆盖</p>
+        <p class="small">空文件夹不会被上传，如需创建空文件夹请点“新建文件夹”</p>
       </div>
     </div>
     <!-- 上传文件列表 -->
@@ -215,7 +218,7 @@
           <p v-else>{{emptyText}}</p>
         </div>
         <el-table-column type="selection" width="45"></el-table-column>
-        <el-table-column prop="name" label="名称">
+        <el-table-column prop="name" label="名称" sortable>
           <template v-slot="{ row }">
             <span 
               class="file-item"
@@ -227,12 +230,12 @@
             </span>
           </template>
         </el-table-column>
-        <el-table-column prop="size" label="大小" width="100">
+        <el-table-column prop="size" label="大小" width="100" sortable>
           <template v-slot="{ row }">
             {{ row.type === 'directory' ? '-' : formatSize(row.size) }}
           </template>
         </el-table-column>
-        <el-table-column prop="ctimeMs" label="修改时间" width="160">
+        <el-table-column prop="ctimeMs" label="修改时间" width="160" sortable>
           <template v-slot="{ row }">
             {{ formatTime(row.ctimeMs) }}
           </template>
@@ -444,28 +447,8 @@ export default {
       this.loadFiles()
     },
     
-    //上传文件
-    uploadFile(){
-      const input = document.createElement("input");
-      input.type = "file";
-      input.setAttribute("allowdirs", "true");
-      input.setAttribute("directory", "true");
-      input.style.cssText = "display:none";
-      input.multiple = true;
-      document.querySelector("body").appendChild(input);
-      input.click();
-      const _this = this;
-      input.onchange = async function (e) {
-        const files = e.target["files"];
-        for(const key in files){
-          if(files[key] instanceof File){
-            _this.uploadOneFile(files[key])
-          }
-        }
-        document.querySelector("body").removeChild(input);
-      }
-    },
-    uploadOneFile(file) {
+    //上传
+    uploadOneFile(file) { //上传单个文件
       file['uid'] = getUuiD()
       const fileList = {}
       for (const key in file) {
@@ -477,7 +460,7 @@ export default {
         this.showProgress(fileList, parms)
       })
     },
-    showProgress(file, parms) {
+    showProgress(file, parms) { //显示进度条
       const { progress, status, time, speed, cancel } = parms
       const arr = [...this.uploadFilesList].map(items => {
         if (items.uid === file.uid) {
@@ -491,16 +474,18 @@ export default {
       })
       this.uploadFilesList = [...arr]
     },
-    async httpRequest(file, callback) {
+    async httpRequest(file, callback) { //发送请求
       // 编码文件名
       const encodedFile = new File([file], encodeFileName(file.name), {
         type: file.type,
         lastModified: file.lastModified,
       });
       const formData = new FormData();
+      const filePath = file.webkitRelativePath ?
+        ((this.currentDir?this.currentDir+'/':'')+file.webkitRelativePath.split('/').slice(0, -1).join('/')) :
+        this.currentDir;
       formData.append('files', encodedFile);
-      formData.append('path', encodeURIComponent(file.webkitRelativePath?file.webkitRelativePath:this.currentDir));
-      // 声明计算进度/速度/剩余时间的变量
+      formData.append('path', encodeURIComponent(filePath));
       let progress = 0; //初始进度
       let lastLoaded = 0; //上一时刻已上传的大小
       let lastTime = Date.now(); //上一时刻的时间
@@ -535,8 +520,48 @@ export default {
         callback({ progress, status: 'error' })
       });
     },
+    //上传文件
+    uploadFile(){
+      const input = document.createElement("input");
+      input.type = "file";
+      input.setAttribute("allowdirs", "true");
+      input.setAttribute("directory", "true");
+      input.style.cssText = "display:none";
+      input.multiple = true;
+      document.querySelector("body").appendChild(input);
+      input.click();
+      const _this = this;
+      input.onchange = async function (e) {
+        const files = e.target["files"];
+        for(const key in files){
+          if(files[key] instanceof File){
+            _this.uploadOneFile(files[key])
+          }
+        }
+        document.querySelector("body").removeChild(input);
+      }
+    },
+    //上传文件夹
     uploadDir(){
-
+      const input = document.createElement("input");
+      input.type = "file";
+      input.setAttribute("allowdirs", "true");
+      input.setAttribute("directory", "true");
+      input.style.cssText = "display:none";
+      input.setAttribute("webkitdirectory", "true");
+      input.multiple = true;
+      document.querySelector("body").appendChild(input);
+      input.click();
+      const _this = this;
+      input.onchange = async function (e) {
+        const files = e.target["files"];
+        for(const key in files){
+          if(files[key] instanceof File){
+            _this.uploadOneFile(files[key])
+          }
+        }
+        document.querySelector("body").removeChild(input);
+      }
     },
     dropFile(){
 
@@ -567,24 +592,6 @@ export default {
           }
           if(!isSuccess) return;
           this.handleRefresh();
-        }
-      });
-    },
-    //创建文件夹（指定名称和路径）
-    async createFolderFunc(currentPath, folderName){
-      folderName = folderName.trim();
-      if (!folderName) return this.$message.error('文件夹名不能为空');
-      await this.withLoading({
-        type: 'createFolder',
-        fn: async () => {
-          try{
-            await request.post('/create', {
-              folderPath: currentPath,
-              folderName: folderName,
-            });
-          } catch (err) {
-            this.$message.error(`创建失败：${currentPath}/${folderName}`);
-          }
         }
       });
     },
@@ -809,6 +816,11 @@ export default {
 }
 .el-upload__text em{
   cursor: pointer !important;
+}
+.el-upload__text .small{
+  margin: 0 !important;
+  font-size: 12px !important;
+  color: #909399;
 }
 /* 文件列表 */
 .file-item {

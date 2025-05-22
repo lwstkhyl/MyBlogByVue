@@ -198,7 +198,7 @@ export default {
         }
     },
     computed: {
-        ...mapState('auth', {isLoggedIn: 'token'}),
+        ...mapState('auth', { userRole: 'userRole', }),
     },
     methods: {
         ...mapActions('auth', ['isLogin', ]),
@@ -297,7 +297,7 @@ export default {
         content(){
             this.update();
         },
-        isLoggedIn(){
+        userRole(){
             this.refreshImgSizeMap();
         },
         funcArgs:{

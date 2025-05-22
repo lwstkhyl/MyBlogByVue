@@ -7,19 +7,19 @@
         ></el-button>
         <!-- 上传文章 -->
         <el-button 
-            v-show="isLoggedIn" 
+            v-show="userRole === 'admin'" 
             type="primary"
             @click="$router.push('/article/upload')"
         >上传文章</el-button>
         <!-- 更改排序 -->
         <el-button 
-            v-show="isLoggedIn" 
+            v-show="userRole === 'admin'" 
             type="danger"
             @click="showChangeTag"
         >更改排序</el-button>
         <!-- 显示全部文章 -->
         <el-button 
-            v-show="isLoggedIn" 
+            v-show="userRole === 'admin'" 
             type="info"
             @click="displayAllArticle = !displayAllArticle;"
         >{{displayAllArticle ? '恢复隐藏文章' : '显示隐藏文章'}}</el-button>
@@ -49,19 +49,19 @@
                         <div slot="header" class="clearfix">
                             <span class="title">{{ article.title }}</span>
                             <el-button 
-                                v-if="isLoggedIn"
+                                v-if="userRole === 'admin'"
                                 type="danger" plain
                                 @click.stop="deleteArticle(article._id, article.title)"
                                 style="float: right;"
                             >删除</el-button>
                             <el-button 
-                                v-if="isLoggedIn"
+                                v-if="userRole === 'admin'"
                                 type="info" plain
                                 @click.stop="changeArticle(article._id)"
                                 style="float: right; margin-right: 10px;"
                             >修改</el-button>
                             <el-button 
-                                v-if="isLoggedIn"
+                                v-if="userRole === 'admin'"
                                 type="primary" plain
                                 @click.stop="hideArticle(article._id, article.isPublished)"
                                 style="float: right;"
@@ -94,7 +94,7 @@ export default {
         }
     },
     computed: {
-        ...mapState('auth', {isLoggedIn: 'token'}),
+        ...mapState('auth', { userRole: 'userRole', }),
         //根据排序依据重新排序分类文章
         sortArticles(){
             const res = [];
@@ -191,7 +191,7 @@ export default {
         },
     },
     watch: {
-        isLoggedIn(){
+        userRole(){
             this.refresh();
         }
     },

@@ -138,7 +138,7 @@
               shape="square"
               :src="userAvatar" 
             ></el-avatar>
-            <span class="user-name">{{isLoggedIn ? `${userName}（已登录）` : `${userName}`}}</span>
+            <span class="user-name">{{isLoggedIn ? `${userName}（已登录${userRole}）` : `${userName}`}}</span>
           </div>
           <!-- 顶部导航栏内容 -->
           <el-menu
@@ -210,7 +210,7 @@ export default {
     }
   },
   computed:{
-    ...mapState('auth', {isLoggedIn: 'token'}),
+    ...mapState('auth', {isLoggedIn: 'token', userRole: 'userRole', }),
     ...mapState('base', ['isMobileAgent', ]),
   },
   async mounted(){
@@ -229,7 +229,7 @@ export default {
     this.isLogin();
   },
   methods: {
-    ...mapMutations('auth', ['LOGOUT', 'SET_TOKEN', ]),
+    ...mapMutations('auth', ['LOGOUT', 'SET_TOKEN', 'SET_USER', ]),
     ...mapActions('auth', ['isLogin', ]),
     handleLog(){ //根据是否处于登录状态，弹出登录/退出登录窗口
       if(!this.isLoggedIn) this.visible = true;
@@ -258,6 +258,7 @@ export default {
             password: encryptPassword(this.form.password) // 前端加密
         });
         this.SET_TOKEN(res.data.token);
+        this.SET_USER(res.data.role);
         // window.location.reload(); // 强制刷新页面
         this.visible = false;
       } catch (err) {

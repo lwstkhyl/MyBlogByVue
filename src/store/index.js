@@ -22,8 +22,12 @@ const auth = {
             state.token = token;
             localStorage.setItem('token', token);
         },
+        SET_USER(state, userRole) {
+            state.userRole = userRole;
+        },
         LOGOUT(state) {
             state.token = '';
+            state.userRole = '';
             localStorage.removeItem('token');
         },
     },
@@ -32,8 +36,9 @@ const auth = {
             context.commit('SET_TOKEN', localStorage.getItem('token') || '')
             try {
                 const res = await request.post('/auth/check');
-                context.commit('SET_TOKEN', res.data.token)
-                return true;
+                context.commit('SET_TOKEN', res.data.token);
+                context.commit('SET_USER', res.data.role);
+                return res.data.role === 'admin';
             } catch (err) {
                 context.commit('LOGOUT');
                 return false;

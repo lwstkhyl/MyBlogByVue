@@ -86,7 +86,7 @@ export default {
         }
     },
     computed: {
-        ...mapState('auth', {isLoggedIn: 'token'}),
+        ...mapState('auth', { userRole: 'userRole', }),
     },
     methods: {
         ...mapActions('auth', ['isLogin', ]),
@@ -111,7 +111,7 @@ export default {
         },
     },
     watch: {
-        isLoggedIn: {
+        userRole: {
             handler(newVal){
                 if(this.$router.currentRoute.fullPath !== '/article/upload') return;
                 if(!newVal) loginCheck.apply(this, ['ArticleUpload']);

@@ -38,7 +38,7 @@
 
     <!-- 上传文件区域 -->
     <div
-      v-show="isLoggedIn"
+      v-show="isShowToUser"
       class="el-upload-dragger"
       @drop="dropFile($event)"
       @dragover="dragOverHandler($event)"
@@ -53,9 +53,10 @@
           type="primary"
           @click="uploadDir"
         >上传文件夹</em>或直接拖拽上传</p>
-        <p class="small">文件夹同名则追加添加文件</p>
-        <p class="small">同名文件覆盖</p>
+        <p class="small">文件夹同名则追加添加文件，文件同名则覆盖</p>
         <p class="small">空文件夹不会被上传，如需创建空文件夹请点“新建文件夹”</p>
+        <p class="small">文件名不能包含\、/、..等字符</p>
+        <p class="small">user用户只在public文件夹下有权限</p>
       </div>
     </div>
     <!-- 上传文件列表 -->
@@ -138,13 +139,13 @@
         ></el-button>
         <!-- 新建文件夹 -->
         <el-button 
-          v-show="isLoggedIn" 
+          v-show="isShowToUser" 
           type="primary"
           @click="visible = true; $nextTick(() => $refs.newFolderInput.focus())"
         >新建文件夹</el-button>
         <!-- 显示上传列表 -->
         <el-button 
-          v-show="isLoggedIn && uploadFilesList.length" 
+          v-show="isShowToUser && uploadFilesList.length" 
           type="info" plain
           @click="uploadFilesListVisible = true"
         >显示上传列表</el-button>
@@ -158,7 +159,7 @@
         >下载选中文件</el-button>
         <!-- 删除选中文件 -->
         <el-button 
-          v-show="selectedFiles.length && isLoggedIn"
+          v-show="selectedFiles.length && isShowToUser"
           type="danger" plain
           :disabled="loadingStates.delete || loadingStates.rename"
           :loading="loadingStates.delete"
@@ -240,7 +241,7 @@
             {{ formatTime(row.ctimeMs) }}
           </template>
         </el-table-column>
-        <el-table-column label="操作" :width="`${isLoggedIn?290:200}`">
+        <el-table-column label="操作" :width="`${isShowToUser?290:200}`">
           <template v-slot="{ row }">
             <el-button 
               size="mini"
@@ -249,7 +250,7 @@
               @click.stop="downloadFile(row.path, row.type)"
             >下载</el-button>
             <el-button 
-              v-show="isLoggedIn"
+              v-show="isShowToUser"
               type="danger" 
               size="mini"
               :disabled="loadingStates.delete || loadingStates.rename"
@@ -257,7 +258,7 @@
               @click.stop="deleteFile(row.path)"
             >删除</el-button>
             <el-button 
-              v-show="isLoggedIn"
+              v-show="isShowToUser"
               type="warning" 
               size="mini"
               :disabled="loadingStates.rename"
@@ -335,10 +336,16 @@ export default {
     }
   },
   computed: {
-    ...mapState('auth', {isLoggedIn: 'token'}),
+    ...mapState('auth', {isLoggedIn: 'token', userRole: 'userRole'}),
     ...mapState('pan', ['loadingStates']),
     pathParts() { //分隔目录
       return this.currentDir.split('/').filter(p => p) //过滤掉空字符串
+    },
+    isPublicDir(){
+      return this.currentPath.startsWith('public');
+    },
+    isShowToUser(){
+      return (this.isPublicDir && this.isLoggedIn) || this.userRole === 'admin';
     },
   },
 
@@ -522,45 +529,53 @@ export default {
     },
     //上传文件
     uploadFile(){
-      const input = document.createElement("input");
-      input.type = "file";
-      input.setAttribute("allowdirs", "true");
-      input.setAttribute("directory", "true");
-      input.style.cssText = "display:none";
-      input.multiple = true;
-      document.querySelector("body").appendChild(input);
-      input.click();
-      const _this = this;
-      input.onchange = async function (e) {
-        const files = e.target["files"];
-        for(const key in files){
-          if(files[key] instanceof File){
-            _this.uploadOneFile(files[key])
+      try{
+        const input = document.createElement("input");
+        input.type = "file";
+        input.setAttribute("allowdirs", "true");
+        input.setAttribute("directory", "true");
+        input.style.cssText = "display:none";
+        input.multiple = true;
+        document.querySelector("body").appendChild(input);
+        input.click();
+        const _this = this;
+        input.onchange = async function (e) {
+          const files = e.target["files"];
+          for(const key in files){
+            if(files[key] instanceof File){
+              _this.uploadOneFile(files[key])
+            }
           }
+          document.querySelector("body").removeChild(input);
         }
-        document.querySelector("body").removeChild(input);
+      } catch(err) {
+        this.$message.error('上传失败')
       }
     },
     //上传文件夹
     uploadDir(){
-      const input = document.createElement("input");
-      input.type = "file";
-      input.setAttribute("allowdirs", "true");
-      input.setAttribute("directory", "true");
-      input.style.cssText = "display:none";
-      input.setAttribute("webkitdirectory", "true");
-      input.multiple = true;
-      document.querySelector("body").appendChild(input);
-      input.click();
-      const _this = this;
-      input.onchange = async function (e) {
-        const files = e.target["files"];
-        for(const key in files){
-          if(files[key] instanceof File){
-            _this.uploadOneFile(files[key])
+      try{
+        const input = document.createElement("input");
+        input.type = "file";
+        input.setAttribute("allowdirs", "true");
+        input.setAttribute("directory", "true");
+        input.style.cssText = "display:none";
+        input.setAttribute("webkitdirectory", "true");
+        input.multiple = true;
+        document.querySelector("body").appendChild(input);
+        input.click();
+        const _this = this;
+        input.onchange = async function (e) {
+          const files = e.target["files"];
+          for(const key in files){
+            if(files[key] instanceof File){
+              _this.uploadOneFile(files[key])
+            }
           }
+          document.querySelector("body").removeChild(input);
         }
-        document.querySelector("body").removeChild(input);
+      } catch(err) {
+        this.$message.error('上传失败')
       }
     },
     dropFile(){

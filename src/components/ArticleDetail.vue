@@ -6,7 +6,7 @@
         >返回</el-button>
         <!-- 修改文章 -->
         <el-button 
-            v-show="isLoggedIn"
+            v-show="userRole === 'admin'"
             type="danger"
             @click="clickChangeArticle"
         >修改文章</el-button>
@@ -166,7 +166,7 @@ export default {
         'el-image-viewer': () => import('element-ui/packages/image/src/image-viewer')
     },
     computed: {
-        ...mapState('auth', {isLoggedIn: 'token'}),
+        ...mapState('auth', { userRole: 'userRole', }),
     },  
     methods: {
         ...mapActions('auth', ['isLogin', ]),

@@ -150,6 +150,7 @@ export default {
         //刷新文章列表
         async refresh(){
             try{
+                if(this.isLoading) return;
                 this.isLoading = true;
                 this.sortArticles = [];
                 this.activeCollapse = [];
@@ -167,13 +168,14 @@ export default {
                     });
                     if(this.sortArticles[index].length) this.activeCollapse.push(tags);
                 });
-                const otherIndex = this.sortArticles.push([]);
+                const length = this.sortArticles.length;
+                this.sortArticles[length] = [];
                 this.articles.forEach((article)=>{
                     if(!article.isSeleted){
-                        this.sortArticles[otherIndex-1].push(article);
+                        this.sortArticles[length].push(article);
                     }
-                    if(this.sortArticles[otherIndex-1].length) this.activeCollapse.push('other');
                 });
+                if(this.sortArticles[length].length) this.activeCollapse.push('other');
             } catch (err) {
                 this.articles = [];
                 this.tagSort = [];

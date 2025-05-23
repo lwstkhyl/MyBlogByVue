@@ -455,7 +455,7 @@ export default {
     },
     
     //上传
-    uploadOneFile(file) { //上传单个文件
+    uploadOneFile(file, relativePath) { //上传单个文件
       file['uid'] = getUuiD()
       const fileList = {}
       for (const key in file) {
@@ -465,9 +465,9 @@ export default {
       this.uploadFilesListVisible = true; //显示上传列表
       this.httpRequest(file, parms => { 
         this.showProgress(fileList, parms)
-      })
+      }, relativePath)
     },
-    showProgress(file, parms) { //显示进度条
+    showProgress(file, parms,) { //显示进度条
       const { progress, status, time, speed, cancel } = parms
       const arr = [...this.uploadFilesList].map(items => {
         if (items.uid === file.uid) {
@@ -481,15 +481,16 @@ export default {
       })
       this.uploadFilesList = [...arr]
     },
-    async httpRequest(file, callback) { //发送请求
+    async httpRequest(file, callback, relativePath) { //发送请求
+      if(!relativePath) relativePath = file.webkitRelativePath;
       // 编码文件名
       const encodedFile = new File([file], encodeFileName(file.name), {
         type: file.type,
         lastModified: file.lastModified,
       });
       const formData = new FormData();
-      const filePath = file.webkitRelativePath ?
-        ((this.currentDir?this.currentDir+'/':'')+file.webkitRelativePath.split('/').slice(0, -1).join('/')) :
+      const filePath = relativePath ?
+        ((this.currentDir?this.currentDir+'/':'')+relativePath.split('/').slice(0, -1).join('/')) :
         this.currentDir;
       formData.append('files', encodedFile);
       formData.append('path', encodeURIComponent(filePath));
@@ -578,11 +579,35 @@ export default {
         this.$message.error('上传失败')
       }
     },
-    dropFile(){
-
+    //拖动上传
+    dropFile(ev){
+      ev.preventDefault();
+      if (ev.dataTransfer.items) {
+        for (let i = 0; i < ev.dataTransfer.items.length; i++) {
+          const fileItems = ev.dataTransfer.items[i].webkitGetAsEntry();
+          this.fileTypeLoop(fileItems);
+        }
+      }
     },
-    dragOverHandler(){
-
+    fileTypeLoop(fileItem) { //根据文件类型，如果是文件就上传，文件夹则递归调用
+      let dirReader = null;
+      if (fileItem.isFile) { //文件
+        const relativePath = fileItem.fullPath.slice(1);
+        fileItem.file((file) => {
+          this.uploadOneFile(file, relativePath);
+        });
+      } else if (fileItem.isDirectory) { //文件夹
+        dirReader = fileItem.createReader();
+        dirReader.readEntries(this.onReadEntries);
+      }
+    },
+    onReadEntries (entries) { //读取文件夹内文件
+      for (let i = 0; i < entries.length; i++) {
+        this.fileTypeLoop(entries[i]);
+      }
+    },
+    dragOverHandler(ev){
+      ev.preventDefault();
     },
     
     //创建文件夹

@@ -393,7 +393,7 @@ input[aria-hidden="true"] {
   display: flex;
   cursor: pointer;
   align-items: center;
-  margin-left: 28px;
+  margin-left: 2px;
   /* 颜色和渐变 */
   color: #909399;
   transition: color .3s;

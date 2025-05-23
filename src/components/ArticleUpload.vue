@@ -51,6 +51,9 @@
             <el-form-item label="立即显示？" prop="isPublished">
                 <el-checkbox label="√" v-model="form.isPublished" border></el-checkbox>
             </el-form-item>
+            <el-form-item label="显示目录？" prop="showToc">
+                <el-checkbox label="√" v-model="form.showToc" border></el-checkbox>
+            </el-form-item>
             <el-button type="primary" @click="submitForm">提交</el-button>
         </el-form>
     </div>
@@ -75,6 +78,7 @@ export default {
                 createTime: Date.now(),
                 updateTime: Date.now(),
                 sortID: 0,
+                showToc: true,
             }, //表单项
             initForm: deepClone(this.form), //初始表单
             rules: {

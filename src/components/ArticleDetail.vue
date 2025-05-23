@@ -58,6 +58,11 @@
                 name="isPublished"
                 v-model="changeArticleForm.isPublished"
             ></el-checkbox>
+            <el-checkbox 
+                label="显示目录" 
+                name="showToc"
+                v-model="changeArticleForm.showToc"
+            ></el-checkbox>
             <el-input
                 type="textarea"
                 v-model="changeArticleForm.content"
@@ -72,7 +77,7 @@
             </div>
         </el-dialog>
         <!-- 目录 -->
-        <div class="toc" v-if="!isLoading" ref="toc">
+        <div class="toc" v-show="!isLoading && haveTitle" ref="toc">
             <p 
                 ref="tocItems"
                 v-for="(item, index) in toc"
@@ -81,7 +86,7 @@
                 @click="scrollTo(item.id)"
             >{{ item.text }}</p>
         </div>
-        <div :style="`padding-left: ${isLoading?'0':'290px'};`">
+        <div :style="`padding-left: ${isLoading || !haveTitle ? '0' : '290px'};`">
             <!-- 标题和时间+正在加载文字 -->
             <div class="header">
                 <p v-if="isLoading" class="loading">加载文章中<i>...</i></p>
@@ -159,6 +164,7 @@ export default {
             imageIndex: 0, //当前展示的是哪张图片
             changeArticleVisible: false, //修改文章对话框
             changeArticleForm: {}, //修改文章表单项
+            haveTitle: false, //是否有标题（是否显示目录）
             formatTime, tagsList
         }
     },
@@ -228,6 +234,7 @@ export default {
         //生成目录
         generateToc(){
             const headers = document.querySelector('.article-detail').querySelectorAll('h3, h4, h5');
+            this.haveTitle = headers && headers.length && this.article.showToc;
             this.toc = Array.from(headers).map(header => {
                 return {
                     id: header.id,
@@ -239,6 +246,7 @@ export default {
         },
         //目录自动滚动
         handleScroll: debounce(function(){
+            if(!this.$refs.tocItems || !this.$refs.toc) return;
             const scrollPosition = document.documentElement.scrollTop;
             let currentIndex = null;
             for(let i=this.toc.length-1;i>=0;i--){
@@ -324,6 +332,9 @@ export default {
 .changeArticle .el-dialog__body{
     padding-bottom: 5px !important;
     padding-top: 5px !important;
+}
+.article-detail .el-dialog__header .el-dialog__headerbtn{
+    position: absolute;
 }
 .article-detail .header {
     margin-bottom: 10px;

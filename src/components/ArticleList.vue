@@ -36,42 +36,72 @@
         <!-- 文章列表 -->
         <div class="article-list">
             <p v-if="isLoading">加载文章列表中<i>...</i></p>
-            <ul>
-                <li v-for="(articles, index) in sortArticles" :key="index">
-                    <p>{{tagSort[index] ? tagSort[index] : 'other'}}</p>
-                    <el-card 
-                        v-show="displayAllArticle || article.isPublished" 
-                        v-for="article in articles" 
-                        :key="article._id"
-                        @click.native="$router.push(`/article/${article._id}`)"
-                        class="article-card"
-                    >
-                        <div slot="header" class="clearfix">
-                            <span class="title">{{ article.title }}</span>
-                            <el-button 
-                                v-if="userRole === 'admin'"
-                                type="danger" plain
-                                @click.stop="deleteArticle(article._id, article.title)"
-                                style="float: right;"
-                            >删除</el-button>
-                            <el-button 
-                                v-if="userRole === 'admin'"
-                                type="info" plain
-                                @click.stop="changeArticle(article._id)"
-                                style="float: right; margin-right: 10px;"
-                            >修改</el-button>
-                            <el-button 
-                                v-if="userRole === 'admin'"
-                                type="primary" plain
-                                @click.stop="hideArticle(article._id, article.isPublished)"
-                                style="float: right;"
-                            >{{article.isPublished ? "隐藏" : "显示"}}</el-button>
-                        </div>
-                        <span class="time">{{ formatTime(article.createTime) }}</span>
-                        <span class="tags">{{article.tags}}</span>
-                    </el-card>
-                </li>
-            </ul>
+            <el-collapse v-model="activeCollapse">
+                <el-collapse-item 
+                    v-for="(articles, index) in sortArticles" 
+                    :key="index"
+                    :title="`${tagSort[index] ? tagSort[index] : 'other'}（共${articles.length}篇）`"
+                    :name="`${tagSort[index] ? tagSort[index] : 'other'}`"
+                    :disabled="!articles.length"
+                >
+                    <el-row :gutter="20">
+                        <el-col 
+                            v-for="article in articles" 
+                            :key="article.id"
+                            v-show="displayAllArticle || article.isPublished"
+                            @click.native="$router.push(`/article/${article._id}`)"
+                            :xs="24" 
+                            :sm="12" 
+                            :md="8"
+                            class="article-col"
+                        >
+                            <el-card class="article-card" shadow="hover">
+                                <!-- 封面图片 -->
+                                <div class="cover-wrapper" v-show="article.imgUrl">
+                                    <img 
+                                        v-show="article.imgUrl"
+                                        :src="article.imgUrl" 
+                                        :alt="article.title" 
+                                        class="cover-image"
+                                    >
+                                </div>
+                                <!-- 文章信息 -->
+                                <div 
+                                    class="article-info" 
+                                    :style="`padding-bottom: ${userRole === 'admin' ? '30px' : '15px'};`"
+                                >
+                                    <h3 class="title">{{ article.title }}</h3>
+                                    <div class="meta">
+                                        <p class="time">创建时间：{{ formatTime(article.createTime) }}</p>
+                                        <p class="time">修改时间：{{ formatTime(article.updateTime) }}</p>
+                                        <p class="time" v-if="!tagSort[index]">标签：{{ article.category }}</p>
+                                        <p class="summary" v-if="article.tags">
+                                            内容概要：{{ article.tags }}
+                                        </p>
+                                    </div>
+                                </div>
+                                <div class="article-handle" v-if="userRole === 'admin'">
+                                    <el-button 
+                                        type="danger" plain size="mini"
+                                        @click.stop="deleteArticle(article._id, article.title)"
+                                        style="float: left;"
+                                    >删除</el-button>
+                                    <el-button 
+                                        type="info" plain size="mini"
+                                        @click.stop="changeArticle(article._id)"
+                                        style="float: left"
+                                    >修改</el-button>
+                                    <el-button 
+                                        type="primary" plain size="mini"
+                                        @click.stop="hideArticle(article._id, article.isPublished)"
+                                        style="float: left;"
+                                    >{{article.isPublished ? "隐藏" : "显示"}}</el-button>
+                                </div>
+                            </el-card>
+                        </el-col>
+                    </el-row>
+                </el-collapse-item>
+            </el-collapse>
         </div>
     </div>
 </template>
@@ -86,6 +116,8 @@ export default {
         return {
             tagSort: [], //文章分类排序
             articles: [], //文章列表（未排序）
+            sortArticles: [], //文章列表（排序后）
+            activeCollapse: [], //当前展开的面板
             isLoading: false, //是否正在加载文章列表
             changeTagVisible: false, //更改排序对话框
             newTag: '', //更改排序时新的排序
@@ -95,26 +127,6 @@ export default {
     },
     computed: {
         ...mapState('auth', { userRole: 'userRole', }),
-        //根据排序依据重新排序分类文章
-        sortArticles(){
-            const res = [];
-            this.tagSort.forEach((tags, index)=>{
-                res[index] = [];
-                this.articles.forEach((article)=>{
-                    if(article.category === tags){
-                        res[index].push(article);
-                        article.isSeleted = true;
-                    }
-                });
-            });
-            const otherIndex = res.push([]);
-            this.articles.forEach((article)=>{
-                if(!article.isSeleted){
-                    res[otherIndex-1].push(article);
-                }
-            });
-            return res;
-        }
     },
     methods: {
         //显示更改排序对话框
@@ -139,10 +151,29 @@ export default {
         async refresh(){
             try{
                 this.isLoading = true;
+                this.sortArticles = [];
+                this.activeCollapse = [];
                 const res = await request.get('/article');
                 this.articles = res.data.articles;
                 this.tagSort = res.data.articleTagSort;
                 if(this.tagSort.length === 1 && this.tagSort[0] === '') this.tagSort = [];
+                this.tagSort.forEach((tags, index)=>{ //根据排序依据重新排序分类文章
+                    this.sortArticles[index] = [];
+                    this.articles.forEach((article)=>{
+                        if(article.category === tags){
+                            this.sortArticles[index].push(article);
+                            article.isSeleted = true;
+                        }
+                    });
+                    if(this.sortArticles[index].length) this.activeCollapse.push(tags);
+                });
+                const otherIndex = this.sortArticles.push([]);
+                this.articles.forEach((article)=>{
+                    if(!article.isSeleted){
+                        this.sortArticles[otherIndex-1].push(article);
+                    }
+                    if(this.sortArticles[otherIndex-1].length) this.activeCollapse.push('other');
+                });
             } catch (err) {
                 this.articles = [];
                 this.tagSort = [];
@@ -204,15 +235,81 @@ export default {
 }
 </script>
 <style>
-.article-card{
+.article-list .el-collapse{
+    border-top: none;
+}
+.article-list .el-collapse-item__content{
+    padding-bottom: 0px !important;
+}
+.article-list .el-collapse-item__header{
+    height: 60px;
+    font-size: 18px;
+    line-height: 60px;
+    padding-top: 16px;
+    padding-left: 8px;
+}
+.article-list .el-collapse-item__content .el-row{
+    padding: 16px;
+}
+.article-list .article-card{
     cursor: pointer;
+    height: 100%;
+    transition: all 0.3s;
 }
-.clearfix:before,
-.clearfix:after {
-    display: table;
-    content: "";
+.article-list .article-col {
+    margin-bottom: 20px;
 }
-.clearfix:after {
-    clear: both
+.article-list .article-card:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 2px 12px 0 rgba(0,0,0,.1);
+}
+.article-list .cover-wrapper {
+    height: 180px;
+    overflow: hidden;
+    border-radius: 4px;
+}
+.article-list .cover-image {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+}
+.article-list .article-info {
+    padding: 5px;
+}
+.article-list .article-info p, .article-list .article-info h3{
+    margin: 0 !important;
+}
+.article-list .article-info .title {
+    color: #303133;
+    font-size: 16px;
+    margin: 0 0 10px;
+}
+.article-list .article-info .meta {
+    font-size: 12px;
+    color: #909399;
+    margin-bottom: 10px;
+}
+.article-list .article-info .meta .summary{
+    font-size: 14px;
+    color: #606266;
+}
+.article-list .article-card{
+    position: relative;
+}
+.article-list .article-handle{
+    position: absolute;
+    left: 20px;
+    bottom: 20px;
+}
+/* 解决卡片高度不同问题 */
+.article-list .el-row{
+    display:flex;
+    flex-wrap: wrap;
+}
+.article-list .el-row .el-card {
+    min-width: 100%;
+    height: 100%; 
+    margin-right: 20px;
+    transition: all .5s;
 }
 </style>

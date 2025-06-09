@@ -243,12 +243,16 @@
         </el-table-column>
         <el-table-column label="操作" :width="`${isShowToUser?290:200}`">
           <template v-slot="{ row }">
-            <el-button 
-              size="mini"
-              :disabled="loadingStates.delete || loadingStates.download || loadingStates.rename"
-              :loading="loadingStates.download"
-              @click.stop="downloadFile(row.path, row.type)"
-            >下载</el-button>
+              <el-tooltip effect="dark" :open-delay="1000">
+                <div slot="content">长按复制下载链接</div>
+                <el-button 
+                  size="mini"
+                  :disabled="loadingStates.delete || loadingStates.download || loadingStates.rename"
+                  :loading="loadingStates.download"
+                  @click.stop.prevent="downloadFile(row.path, row.type)"
+                  v-longpress.stop.prevent="() => copyDownloadPath(row.path, row.type)"
+                >下载</el-button>
+            </el-tooltip>
             <el-button 
               v-show="isShowToUser"
               type="danger" 
@@ -305,6 +309,7 @@ import {encodeFileName} from '../utils/crypto';
 import {disableWindowScroll, enableWindowScroll} from '../utils/pageScroll';
 import {formatSize, formatTime, formatSpeed, formatTime_hms} from '../utils/formatters';
 import {getUuiD} from '../utils/utils';
+import {copy} from '../utils/copyPaste'
 
 export default {
   name: 'FileManager',
@@ -327,6 +332,7 @@ export default {
       renameFileIsDir: false, //重命名的文件是不是文件夹
       uploadFilesList: [], //上传文件列表
       uploadFilesListVisible: false, //上传文件列表可见性
+      isDownload: true, //下载/复制下载链接
       viewImgSrc: '', //预览的图片url
       viewTxtSrc: {title:'', content:"", }, //预览的txt文件内容和标题
       visibleImg: false, //预览img
@@ -801,6 +807,10 @@ export default {
 
     //单选下载
     async downloadFile(path, type) {
+      if(!this.isDownload){
+        this.isDownload=true;
+        return;
+      }
       await this.withLoading({
         type: 'download',
         fn: () => {
@@ -819,6 +829,15 @@ export default {
           }
         }
       });
+    },
+
+    //复制下载链接
+    copyDownloadPath(path, type){
+      this.isDownload = false;
+      const url = (type === 'directory') ?
+        `${baseURL}/api/download/?files=${encodeURIComponent(JSON.stringify(path))}` :
+        `${baseURL}/api/download/${encodeURIComponent(path)}`;
+      copy(url);
     },
 
     // 多选下载

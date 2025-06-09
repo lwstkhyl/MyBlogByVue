@@ -37,8 +37,10 @@
     "@vue/cli-plugin-babel": "~5.0.0",
     "@vue/cli-plugin-eslint": "~5.0.0",
     "@vue/cli-service": "~5.0.0",
+    "compression-webpack-plugin": "^6.1.0",
     "eslint": "^7.32.0",
     "eslint-plugin-vue": "^8.0.3",
+    "terser-webpack-plugin": "^4.2.3",
     "vue-template-compiler": "^2.6.14"
   },
   "eslintConfig": {

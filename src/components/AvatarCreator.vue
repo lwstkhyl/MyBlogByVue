@@ -2,38 +2,41 @@
   <div class="container">
     <!-- 左侧操作区域 -->
     <div class="left-panel">
-      <div style="display: flex;">
-        <div class="input-wrapper">
+      <div>
+        <div class="button-group" v-show="imageUrl">
           <!-- 重置选取框 -->
           <el-button 
             type="primary" plain
-            v-show="imageUrl"
             @click="initCropBox"
             style="margin-right:5px"
           >重置选取框</el-button>
           <!-- 清除图片 -->
           <el-button 
             type="danger" plain
-            v-show="imageUrl"
             @click="imageUrl=''"
             style="margin-right:5px; margin-left:0px;"
           >清除图片</el-button>
+          <span 
+            class="image-name"
+          >{{imageName}}</span>
         </div>
         <div class="input-wrapper">
-          <div>
-            <input 
-              type="file" 
-              id="file" 
-              class="input-file"
-              @change="handleFileUpload" 
-              accept="image/*" 
-            >
-            <label for="file" class="el-button">选择图片</label>
+          <!-- 上传文件区域 -->
+          <div
+            class="el-upload-dragger"
+            @drop="dropFile($event)"
+            @dragover="dragOverHandler($event)"
+          >
+            <div class="el-upload__text">
+            <p>点击<em
+                type="primary"
+                @click="handleFileUpload"
+              >选择图片</em>
+            </p>
+            <p class="small">或直接CTRL+V粘贴剪切板图片</p>
+            </div>
           </div>
-          <p 
-            class="image-name"
-            v-show="imageUrl"
-          >{{imageName}}</p>
+
         </div>
       </div>
       <div class="image-container" ref="imageContainer">
@@ -67,7 +70,7 @@
 </template>
 
 <script>
-import {mapState, mapGetters, mapActions, mapMutations} from 'vuex';
+import {mapState, } from 'vuex';
 
 export default {
   name: 'AvatarCreator',
@@ -102,11 +105,48 @@ export default {
   },
   methods: {
     // 处理文件上传
-    handleFileUpload(e) {
-      const file = e.target.files[0];
+    updateFile(file){
       if (!file) return;
+      this.imageName = '';
+      this.imageUrl = '';
       this.imageName = file.name;
       this.imageUrl = URL.createObjectURL(file);
+    }, 
+
+    handleFileUpload(e) {
+      const input = document.createElement("input");
+      input.type = "file";
+      input.accept = "image/*" 
+      input.style.cssText = "display:none";
+      input.multiple = true;
+      document.querySelector("body").appendChild(input);
+      input.click();
+      const _this = this;
+      input.onchange = async function (e) {
+        const file = e.target.files[0];
+        _this.updateFile(file);
+        document.querySelector("body").removeChild(input);
+      }
+    },
+
+    dropFile(ev){
+      ev.preventDefault();
+      if (ev.dataTransfer.files[0]) {
+        const file = ev.dataTransfer.files[0];
+        this.updateFile(file);
+      }
+    },
+
+    dragOverHandler(ev){
+      ev.preventDefault();
+    },
+
+    handlePaste(event){
+      const items = event.clipboardData.items;
+      if (items[0].type.indexOf('image') !== -1) {
+        const file = items[0].getAsFile();
+        this.updateFile(file);
+      }
     },
 
     // 初始化裁剪框
@@ -294,8 +334,11 @@ export default {
 
     handleKeyPress(e){
       if(this.$router.currentRoute.name === 'avatar'){
+        const event = e || window.event;
+        if(event.ctrlKey && event.key === 'v'){
+          this.imageUrl = '';
+        }
         if(this.imageUrl){
-          const event = e || window.event;
           event.preventDefault();
           switch (event.keyCode) {
             case 37:  //按下左箭头键
@@ -304,11 +347,11 @@ export default {
             case 39: //按下右箭头键
                 this.crop.x++;
                 break;
-            case 38: //按下上箭头键
-                this.crop.y++;
-                break;
-            case 40: //按下下箭头键
+            case 38: //按下下箭头键
                 this.crop.y--;
+                break;
+            case 40: //按下上箭头键
+                this.crop.y++;
                 break;
           }
           this.updatePreview();
@@ -326,6 +369,8 @@ export default {
     window.addEventListener('resize', this.handleResize);
     window.removeEventListener('keydown', this.handleKeyPress);
     window.addEventListener('keydown', this.handleKeyPress);
+    document.removeEventListener('paste', this.handlePaste);
+    document.addEventListener('paste', this.handlePaste);
   },
 
 }
@@ -341,25 +386,40 @@ export default {
   padding: 20px;
 }
 
+.left-panel .button-group{
+  padding-bottom: 20px;
+}
+
 .left-panel .input-wrapper{
+  width: 100% !important;
   display: flex;
   align-items: center;
 }
 
-.left-panel .input-file{
-  /* 隐藏默认选择按钮 */
-  width: 0.1px; 
-  height: 0.1px; 
-  opacity: 0; 
-  overflow: hidden; 
-  position: absolute; 
-  z-index: -1;
+.left-panel .input-wrapper .el-upload-dragger{
+  width: 100% !important;
+  height: 90px !important;
+  cursor: default !important;
+}
+
+.left-panel .input-wrapper .el-upload__text{
+  padding-top: 10px !important;
+}
+
+.left-panel .input-wrapper .el-upload__text em{
+  cursor: pointer !important;
+}
+
+.left-panel .input-wrapper .el-upload__text .small{
+  margin: 0 !important;
+  font-size: 12px !important;
+  color: #909399;
 }
 
 .left-panel .image-name{
   font-size: 12px;
   color: #909399;
-  margin-left: 15px;
+  margin-left: 5px;
 }
 
 .right-panel {

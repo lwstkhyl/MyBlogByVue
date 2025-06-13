@@ -869,6 +869,7 @@ export default {
 }
 .el-upload-dragger{
   cursor: default !important;
+  height: 180px !important;
 }
 .el-upload__text{
   padding-top: 20px;

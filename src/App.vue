@@ -56,6 +56,106 @@
         </el-form-item>
       </el-form>
     </el-dialog>
+    <!-- 修改信息对话框 -->
+    <el-dialog 
+        title="修改信息" 
+        :visible.sync="changeUserinfoVisible"
+        class="changeArticle"
+    >
+        <el-input 
+            v-model="userInfoForm.userEmail"
+            placeholder="邮箱"
+        ></el-input>
+        <el-input 
+            v-model="userInfoForm.userURL"
+            placeholder="作者主页"
+        ></el-input>
+        <el-input 
+            v-model="userInfoForm.repURL"
+            placeholder="仓库主页"
+        ></el-input>
+        <el-tooltip effect="light" :disabled="!(userInfoForm.userAvatar)">
+            <div slot="content">
+                <img 
+                    :src="userInfoForm.userAvatar" 
+                    alt="图片预览"
+                    style="max-width:200px; max-height:200px;"
+                >
+            </div>
+            <el-input 
+                v-model="userInfoForm.userAvatar"
+                placeholder="头像url"
+            ></el-input>
+        </el-tooltip>
+        <p>宽屏背景图</p>
+        <el-row 
+            v-for="(row, index) in userInfoForm.bgi"
+            :key="'kuanping'+index"
+            type="flex" justify="center" align="middle"
+        >
+            <el-col :span="20" style="display: flex; justify-content: center;">
+              <el-tooltip effect="light" :disabled="!row">
+                <div slot="content">
+                    <img 
+                        :src="userInfoForm.bgi[index]" 
+                        alt="图片预览"
+                        style="max-width:600px; max-height:600px;"
+                    >
+                </div>
+                <el-input 
+                    v-model="userInfoForm.bgi[index]"
+                    placeholder="宽屏背景图"
+                ></el-input>
+              </el-tooltip>
+            </el-col>
+            <el-col :span="4" style="display: flex; justify-content: center;">
+                <el-button
+                    :type="`${index !== (userInfoForm.bgi.length-1) ? 'danger': 'primary'}`"
+                    size="small"
+                    style="margin-bottom: 10px;"
+                    :icon="`${index !== (userInfoForm.bgi.length-1) ? 'el-icon-delete': 'el-icon-plus'}`"
+                    @click="`${index !== (userInfoForm.bgi.length-1) ? userInfoForm.bgi.splice(index, 1) : userInfoForm.bgi.push('')}`"
+                ></el-button>
+            </el-col>
+        </el-row>
+        <p>窄屏背景图</p>
+        <el-row 
+            v-for="(row, index) in userInfoForm.bgiM"
+            :key="'zaiping'+index"
+            type="flex" justify="center" align="middle"
+        >
+            <el-col :span="20" style="display: flex; justify-content: center;">
+              <el-tooltip effect="light" :disabled="!row">
+                <div slot="content">
+                    <img 
+                        :src="userInfoForm.bgiM[index]" 
+                        alt="图片预览"
+                        style="max-width:600px; max-height:600px;"
+                    >
+                </div>
+                <el-input 
+                    v-model="userInfoForm.bgiM[index]"
+                    placeholder="窄屏背景图"
+                ></el-input>
+              </el-tooltip>
+            </el-col>
+            <el-col :span="4" style="display: flex; justify-content: center;">
+                <el-button
+                    :type="`${index !== (userInfoForm.bgiM.length-1) ? 'danger': 'primary'}`"
+                    size="small"
+                    style="margin-bottom: 10px;"
+                    :icon="`${index !== (userInfoForm.bgiM.length-1) ? 'el-icon-delete': 'el-icon-plus'}`"
+                    @click="`${index !== (userInfoForm.bgiM.length-1) ? userInfoForm.bgiM.splice(index, 1) : userInfoForm.bgiM.push('')}`"
+                ></el-button>
+            </el-col>
+        </el-row>
+        <div slot="footer" style="text-align: center;">
+            <el-button 
+                type="primary" 
+                @click="changeUserinfo"
+            >确认</el-button>
+        </div>
+    </el-dialog>
     <!-- 侧边栏 -->
     <el-aside 
       v-if="!$route.path.startsWith('/viewFile')"
@@ -134,10 +234,10 @@
             v-longpress="handleLog"
           >
             <el-avatar 
-              v-show="userAvatar" 
+              v-show="userInfo.userAvatar" 
               :size="36" 
               shape="square"
-              :src="userAvatar" 
+              :src="userInfo.userAvatar" 
             ></el-avatar>
             <span class="user-name">{{isLoggedIn ? `${userName}（已登录${userRole}）` : `${userName}`}}</span>
           </div>
@@ -183,17 +283,18 @@
 </template>
 
 <script>
+import _ from 'lodash';
 import {mapState, mapActions, mapMutations} from 'vuex';
 import {encryptPassword} from './utils/crypto'
 // import {getMetaInfo} from './utils/seo'
 import request from './api/request';
-import {userName, userAvatar, userURL, repURL} from '../config/config'
+import {userName} from '../config/config'
 
 export default {
   // metaInfo: getMetaInfo(),
   data() {
     return {
-      userName, userAvatar, userURL, repURL, //用户信息
+      userName: userName,
       list: [], //路由列表
       showSidebar: false, //是否展示侧边栏
       sidebarTop: 0, //侧边栏顶部留白
@@ -204,20 +305,30 @@ export default {
       timeOutEvent: 0, //记录触摸时长（长按头像用户名登录）
       visible: false, //登录弹窗是否弹出
       loading: false, //是否正在登录状态
+      changeUserinfoVisible: false, //修改信息对话框
       form: { //登录的表单数据
         username: '',
         password: ''
-      }
+      },
+      userInfoForm: {}, //信息表单
     }
   },
   computed:{
     ...mapState('auth', {isLoggedIn: 'token', userRole: 'userRole', }),
-    ...mapState('base', ['isMobileAgent', ]),
+    ...mapState('base', ['isMobileAgent', 'userInfo', ]),
   },
   async mounted(){
     window.addEventListener('keydown', e => {
       if(e.keyCode === 16 || e.keyCode === 17) {
         this.isKeydown = true;
+      }
+      if(e.ctrlKey && e.shiftKey && this.isLoggedIn){
+        this.changeUserinfoVisible = true;
+      }
+    });
+    window.addEventListener('keyup', e => {
+      if(e.keyCode === 16 || e.keyCode === 17) {
+        this.isKeydown = false;
       }
     });
     window.addEventListener('keyup', e => {
@@ -228,10 +339,13 @@ export default {
     window.addEventListener('resize', this.handleResize);
     this.handleResize();
     this.isLogin();
+    await this.getUserInfo();
+    this.userInfoForm = _.cloneDeep(this.userInfo);
   },
   methods: {
     ...mapMutations('auth', ['LOGOUT', 'SET_TOKEN', 'SET_USER', ]),
     ...mapActions('auth', ['isLogin', ]),
+    ...mapActions('base', ['getUserInfo', 'updateUserInfo', ]),
     handleLog(){ //根据是否处于登录状态，弹出登录/退出登录窗口
       if(!this.isLoggedIn) this.visible = true;
       else {
@@ -243,11 +357,11 @@ export default {
       }
     },
     clickUsername(){
-      if(!this.isKeydown && this.userURL) {
-        window.open(this.userURL);
+      if(!this.isKeydown && this.userInfo.userURL) {
+        window.open(this.userInfo.userURL);
       }
-      else {
-        this.handleLog();
+      if(this.isKeydown && this.isLoggedIn){
+        this.changeUserinfoVisible = true;
       }
     },
     async handleLogin() { //登录
@@ -278,6 +392,17 @@ export default {
       this.$router.push({
         path: key,
       });
+    },
+    async changeUserinfo(){
+      try{
+        this.userInfoForm.bgi = this.userInfoForm.bgi.filter(ele=>ele);
+        this.userInfoForm.bgi = [...this.userInfoForm.bgi];
+        await this.updateUserInfo(this.userInfoForm);
+        this.changeUserinfoVisible = false;
+        this.$message.success('更改成功');
+      } catch(err) {
+        this.$message.error('更改失败');
+      }
     },
     toggleSidebar() { //隐藏/显示侧面导航
       this.showSidebar = !this.showSidebar

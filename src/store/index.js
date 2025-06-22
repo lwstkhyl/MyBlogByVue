@@ -3,12 +3,54 @@ import Vuex from 'vuex';
 import request from '../api/request'
 
 Vue.use(Vuex);
+const defaultUserInfo = {
+    userEmail: '1271943237@qq.com',
+    userAvatar: 'https://s21.ax1x.com/2025/02/26/pE1vyj0.png',
+    userURL: 'https://github.com/lwstkhyl/',
+    repURL: 'https://github.com/lwstkhyl/MyBlogByVue',
+    bgi: ['https://s21.ax1x.com/2025/06/22/pVZ6KL8.jpg'],
+    bgiM: ['https://s21.ax1x.com/2024/08/24/pAFJ3TI.jpg'],
+}
+async function getUserInfo() {
+    let res;
+    try {
+        res = await request.get('/userInfo');
+        if (!res.data) res = { data: defaultUserInfo };
+    } catch {
+        res = { data: defaultUserInfo };
+    }
+    return {
+        userEmail: res.data.userEmail,
+        userAvatar: res.data.userAvatar,
+        userURL: res.data.userURL,
+        repURL: res.data.repURL,
+        bgi: res.data.bgi,
+        bgiM: res.data.bgiM,
+    }
+}
 
 const base = {
     namespaced: true,
     state: {
         isMobileAgent: /Mobi|Android|iPhone/i.test(navigator.userAgent),
+        userInfo: {},
     },
+    mutations: {
+        GET_USERINFO(state, userInfo) {
+            state.userInfo = userInfo;
+        },
+    },
+    actions: {
+        async getUserInfo(context, value) {
+            const res = await getUserInfo();
+            context.commit('GET_USERINFO', res);
+        },
+        async updateUserInfo(context, value) {
+            await request.post('/userInfo', value);
+            const res = await getUserInfo();
+            context.commit('GET_USERINFO', res);
+        }
+    }
 }
 
 const auth = {

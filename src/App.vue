@@ -1,5 +1,7 @@
 <template>
-  <div id="app">
+  <div id="app"
+    :style="`--bgi: url(${bgiURL});`"
+  >
     <!-- 回到顶部按钮 -->
     <el-backtop 
       v-if="!$route.path.startsWith('/viewFile')"
@@ -28,6 +30,7 @@
       :visible.sync="visible"
       width="400px"
       :show-close="false"
+      :append-to-body="true"
     >
       <el-form :model="form" @submit.native.prevent="handleLogin">
         <el-form-item>
@@ -61,6 +64,7 @@
         title="修改信息" 
         :visible.sync="changeUserinfoVisible"
         class="changeArticle"
+        :append-to-body="true"
     >
         <el-input 
             v-model="userInfoForm.userEmail"
@@ -234,6 +238,7 @@
             v-longpress="handleLog"
           >
             <el-avatar 
+              class="user-avatar"
               v-show="userInfo.userAvatar" 
               :size="36" 
               shape="square"
@@ -311,6 +316,7 @@ export default {
         password: ''
       },
       userInfoForm: {}, //信息表单
+      bgiURL: '', //背景图链接
     }
   },
   computed:{
@@ -341,6 +347,7 @@ export default {
     this.isLogin();
     await this.getUserInfo();
     this.userInfoForm = _.cloneDeep(this.userInfo);
+    this.bgiURL = "https://s21.ax1x.com/2025/05/23/pEzB1Z4.png"
   },
   methods: {
     ...mapMutations('auth', ['LOGOUT', 'SET_TOKEN', 'SET_USER', ]),
@@ -349,7 +356,7 @@ export default {
     handleLog(){ //根据是否处于登录状态，弹出登录/退出登录窗口
       if(!this.isLoggedIn) this.visible = true;
       else {
-        this.$confirm('退出登录?', '提示', {
+        this.$confirm('退出登录？', '提示', {
           confirmButtonText: '确定',
           cancelButtonText: '取消',
           type: 'warning'
@@ -455,6 +462,47 @@ input[aria-hidden="true"] {
 .el-radio:focus:not(.is-focus):not(:active):not(.is-disabled) .el-radio__inner {
     box-shadow: none;
 }
+/* 背景图 */
+#app::before{
+  content: "";
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background-position: center;
+  background-attachment: fixed;
+  background-size: cover;
+  background-repeat: no-repeat;
+  background-image: var(--bgi);
+  filter: blur(3px) brightness(0.7);
+  z-index: 0;
+}
+/* 页面内容区域 */
+#app .content, aside.el-aside, .header-content, i.sidebar-toggle, ul.el-menu.el-menu--popup{
+  background-color: rgba(255, 255, 255, 0.4) !important;
+  backdrop-filter: blur(5px) !important;
+  border-radius: 5px;
+}
+aside.el-aside ul.el-menu-vertical.el-menu, aside.el-aside ul.el-menu.el-menu--inline{
+  background-color: transparent !important;
+}
+#app .content{
+  padding:10px;
+}
+/* 按钮样式 */
+.el-button--default{
+  background-color: rgba(255, 255, 255, 0.7) !important;
+}
+.el-button--default:hover{
+  background-color: #ecf5ff !important;
+}
+.el-message-box .el-button--primary{
+  background: #409EFF !important;
+}
+.el-message-box .el-button--primary:hover{
+  background-color: #66b1ff !important;
+}
 /* 登录弹窗居中 */
 ::v-deep .el-dialog{
   display: flex;
@@ -467,7 +515,7 @@ input[aria-hidden="true"] {
   max-height: calc(100% - 30px);
   max-width: calc(100% - 30px);
 }
-::v-deep  .el-dialog .el-dialog__body{
+::v-deep .el-dialog .el-dialog__body{
   flex: 1;
   overflow: auto;
 }
@@ -492,7 +540,6 @@ input[aria-hidden="true"] {
 /* 头部样式 */
 .header {
   padding: 0 20px;
-  background-color: #FFF;
   height: 70px !important;
   transition: margin-left 0.3s;
 }
@@ -507,12 +554,32 @@ input[aria-hidden="true"] {
   justify-content: end;
   height: 100%;
   line-height: 70px;
-  margin-right: 8px;
+  /* margin-right: 8px; */
+  background-color: transparent;
+}
+.el-submenu__title:hover, ul.el-menu .el-menu-item{
+  background-color: transparent !important;
 }
 .header .el-menu li, .header .el-menu li .el-submenu__title, .header .el-menu li .el-submenu__title i{
   font-size: 16px;
   height: 70px;
   line-height: 70px;
+}
+.header .el-menu li .el-submenu__title i{
+  transition: all 0.3s;
+}
+.header .el-menu li .el-submenu__title:hover i{
+  color: #303133;
+}
+.header .el-menu.el-menu--horizontal, aside.el-aside ul.el-menu-vertical{
+  border: none;
+}
+.header .el-menu--horizontal>.el-menu-item:not(.is-disabled):hover, .el-menu--horizontal .el-menu-item:not(.is-disabled):hover, .el-menu--horizontal>.el-submenu .el-submenu__title:hover, aside.el-aside .el-menu-item:hover, aside.el-aside .el-submenu__title:hover {
+  background-color: rgba(255, 255, 255, 0.5) !important;
+}
+.el-menu--horizontal .el-menu--popup{
+  padding: 0;
+  margin: 0;
 }
 /* 用户名区域 */
 .header .userInfo{
@@ -522,9 +589,14 @@ input[aria-hidden="true"] {
   /* 颜色和渐变 */
   color: #909399;
   transition: color .3s;
+  padding: 0 10px;
+  z-index: 1;
 }
 .header .userInfo .user-name{
   margin-left: 8px;
+}
+.header .userInfo .user-avatar{
+  background-color: rgba(255, 255, 255, 0.7);
 }
 .header .userInfo:hover{
   color: #303133;
@@ -537,6 +609,7 @@ input[aria-hidden="true"] {
   position: fixed;
   left: 20px;
   top: 20px;
+  padding: 5px;
   z-index: 2000;
 }
 .sidebar {
@@ -547,7 +620,6 @@ input[aria-hidden="true"] {
   bottom: 0;
   z-index: 1999;
   transition: left 0.3s;
-  background-color: #FFF;
 }
 .sidebar-show {
   left: 0;
@@ -560,6 +632,13 @@ input[aria-hidden="true"] {
 .main-content {
   min-height: calc(100vh - 60px);
   padding: 20px;
+}
+.content-wrapper .content>div{
+  margin: 10px; 
+}
+/* 回到顶部按钮 */
+.el-backtop{
+  background-color: rgba(255, 255, 255, 0.75) !important;
 }
 /* 遮罩层 */
 .mask {

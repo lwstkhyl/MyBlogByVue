@@ -32,7 +32,7 @@
                         <el-col>
                             <el-checkbox label="改图片尺寸" border></el-checkbox>
                         </el-col>
-                        <el-col>
+                        <el-col style="overflow: hidden;">
                             <el-tooltip effect="dark" :open-delay="1000">
                                 <div slot="content" v-html="sizeMapStr()"></div>
                                 <el-button 
@@ -120,7 +120,7 @@
             </el-col>
         </el-row>
         <!-- 更改图片尺寸映射对话框 -->
-        <el-dialog title="更改排序" :visible.sync="changeImgSizeMapVisible">
+        <el-dialog title="更改排序" :visible.sync="changeImgSizeMapVisible" :append-to-body="true">
             <el-form 
                 :model="changedImgSizeMap" 
                 ref="form"

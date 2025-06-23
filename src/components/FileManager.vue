@@ -1,7 +1,7 @@
 <template>
   <div class="file-manager">
     <!-- 新建文件夹组件 -->
-    <el-dialog title="新建文件夹" :visible.sync="visible">
+    <el-dialog title="新建文件夹" :visible.sync="visible" :append-to-body="true">
       <el-input 
         ref="newFolderInput"
         v-model="folderName" 
@@ -19,7 +19,7 @@
     </el-dialog>
 
     <!-- 重命名文件夹组件 -->
-    <el-dialog title="重命名文件夹" :visible.sync="renameVisible">
+    <el-dialog title="重命名文件夹" :visible.sync="renameVisible" :append-to-body="true">
       <el-input 
         ref="renameDirInput"
         v-model="renameName" 
@@ -64,6 +64,7 @@
       title="上传文件列表" 
       @close="uploadFilesListVisible = false"
       :visible="uploadFilesListVisible" 
+      :append-to-body="true"
     >
       <el-table :data="uploadFilesList" style="width: 100%" max-height="450" >
         <el-table-column prop="name" :show-overflow-tooltip="true" label="名称">
@@ -286,7 +287,7 @@
       :on-close="closeImgViewer"
     />
     <!-- txt预览 -->
-    <el-dialog title="txt预览" :visible.sync="visibleTxt" class="txt-viewer">
+    <el-dialog title="txt预览" :visible.sync="visibleTxt" class="txt-viewer" :append-to-body="true">
       <h3>文件名：{{viewTxtSrc.title}}</h3>
       <div style="white-space: pre-wrap;">{{ viewTxtSrc.content }}</div>
       <div slot="footer" style="text-align: center;">
@@ -867,9 +868,11 @@ export default {
 .upload-demo, .el-upload, .el-upload-dragger{
   width: 100% !important;
 }
-.el-upload-dragger{
+.file-manager .el-upload-dragger{
   cursor: default !important;
   height: 180px !important;
+  border: 2px dashed #d9d9d9 !important;
+  background-color: transparent;
 }
 .el-upload__text{
   padding-top: 20px;
@@ -893,6 +896,9 @@ export default {
 .path-navigation{
   margin: 10px;
 }
+.path-navigation .el-breadcrumb__separator{
+  color: #d9d9d9;
+}
 /* 路径导航链接可点击 */
 .el-breadcrumb__inner {
   cursor: pointer;
@@ -912,7 +918,7 @@ export default {
   text-align: right;
 }
 .stat i{
-  color: #909399;
+  color: #606266;
   font-weight: bold;
   font-style: normal;
 }
@@ -941,6 +947,18 @@ p.loading{
 /* 表格单元格hover */
 .el-table__body tr:hover>td{
     background-color: hsla(201, 100%, 66%, 0.356) !important;
+}
+/* 表格背景透明 */
+.file-manager .el-table, .file-manager .el-table th.el-table__cell, .file-manager .el-table tr, .file-manager .el-table td.el-table__cell, .file-manager .el-table::before {
+  background-color: transparent !important;
+  border: none !important;
+}
+/* 表头箭头颜色 */
+.file-manager .el-table .sort-caret.ascending{
+  border-bottom-color: #d9d9d9;
+}
+.file-manager .el-table .sort-caret.descending{
+  border-top-color: #d9d9d9;
 }
 /* 取消多选框选中动画 */
 .el-checkbox__inner, .el-checkbox__inner::after{

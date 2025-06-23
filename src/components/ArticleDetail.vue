@@ -4,6 +4,12 @@
         <el-button 
             @click="$router.push('/article')"
         >返回</el-button>
+        <!-- 隐藏/显示目录 -->
+        <el-button 
+            v-show="haveTitle"
+            type="info"
+            @click="article.showToc = !article.showToc"
+        >{{article.showToc?'隐藏':'显示'}}目录</el-button>
         <!-- 修改文章 -->
         <el-button 
             v-show="userRole === 'admin'"
@@ -21,6 +27,7 @@
             title="修改文章" 
             :visible.sync="changeArticleVisible"
             class="changeArticle"
+            :append-to-body="true"
         >
             <el-input 
                 v-model="changeArticleForm.title"
@@ -77,7 +84,11 @@
             </div>
         </el-dialog>
         <!-- 目录 -->
-        <div class="toc" v-show="!isLoading && haveTitle" ref="toc">
+        <div 
+            class="toc" 
+            ref="toc"
+            v-show="!isLoading && haveTitle && article.showToc && $route.path.startsWith('/article/') && $route.path!=='/article/upload'"
+        >
             <p 
                 ref="tocItems"
                 v-for="(item, index) in toc"
@@ -86,7 +97,7 @@
                 @click="scrollTo(item.id)"
             >{{ item.text }}</p>
         </div>
-        <div :style="`padding-left: ${isLoading || !haveTitle ? '0' : '290px'};`">
+        <div :style="`padding-left: ${isLoading || !(haveTitle && article.showToc) ? '0' : '290px'};`">
             <!-- 标题和时间+正在加载文字 -->
             <div class="header">
                 <p v-if="isLoading" class="loading">加载文章中<i>...</i></p>
@@ -164,7 +175,7 @@ export default {
             imageIndex: 0, //当前展示的是哪张图片
             changeArticleVisible: false, //修改文章对话框
             changeArticleForm: {}, //修改文章表单项
-            haveTitle: false, //是否有标题（是否显示目录）
+            haveTitle: false, //是否有标题
             formatTime, tagsList
         }
     },
@@ -173,6 +184,9 @@ export default {
     },
     computed: {
         ...mapState('auth', { userRole: 'userRole', }),
+        showToc(){ //是否显示目录
+            return this.haveTitle && this.article.showToc;
+        },
     },  
     methods: {
         ...mapActions('auth', ['isLogin', ]),
@@ -207,6 +221,11 @@ export default {
                     this.generateToc();
                     window.removeEventListener('scroll', this.handleScroll);
                     window.addEventListener('scroll', this.handleScroll);
+                    this.handleResize();
+                    window.removeEventListener('resize', this.handleResize);
+                    window.addEventListener('resize', this.handleResize);
+                    document.querySelector('#app').appendChild(this.$refs.toc);
+                    document.body.removeChild(this.$refs.toc);
                 });
             } catch(err) {
                 console.log(err); 
@@ -234,7 +253,7 @@ export default {
         //生成目录
         generateToc(){
             const headers = document.querySelector('.article-detail').querySelectorAll('h3, h4, h5');
-            this.haveTitle = headers && headers.length && this.article.showToc;
+            this.haveTitle = headers && headers.length;
             this.toc = Array.from(headers).map(header => {
                 return {
                     id: header.id,
@@ -275,6 +294,10 @@ export default {
                 });
             }
         }, 500),
+        handleResize(){
+            const left = document.querySelector('main.main-content').offsetLeft;
+            this.$refs.toc.style.left = `${left+20}px`;
+        },
         //点击标签滚动
         scrollTo(id) {
             const target = document.getElementById(id);

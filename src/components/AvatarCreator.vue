@@ -377,6 +377,10 @@ export default {
 </script>
 
 <style scoped>
+.el-upload-dragger{
+  background-color: transparent;
+  border: 2px dashed #d9d9d9;
+}
 .container {
   display: flex;
 }
@@ -425,7 +429,7 @@ export default {
 .right-panel {
   width: 350px;
   padding: 20px;
-  border-left: 1px solid #ccc;
+  border-left: 2px solid #909399;
   display: flex;
   flex-direction: column;
   align-items: center;

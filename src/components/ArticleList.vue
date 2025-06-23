@@ -24,7 +24,7 @@
             @click="displayAllArticle = !displayAllArticle;"
         >{{displayAllArticle ? '恢复隐藏文章' : '显示隐藏文章'}}</el-button>
         <!-- 更改排序对话框 -->
-        <el-dialog title="更改排序" :visible.sync="changeTagVisible">
+        <el-dialog title="更改排序" :visible.sync="changeTagVisible" :append-to-body="true">
             <el-input v-model="newTag" placeholder="根据、或/分隔" @keyup.enter.native="changeTag"></el-input>
             <div slot="footer" style="text-align: center;">
                 <el-button 
@@ -43,6 +43,7 @@
                     :title="`${tagSort[index] ? tagSort[index] : 'other'}（共${articles.length}篇）`"
                     :name="`${tagSort[index] ? tagSort[index] : 'other'}`"
                     :disabled="!articles.length"
+                    :class="[articles.length ? '' : 'empty-item', index!==sortArticles.length-1 ? '': 'last-item']"
                 >
                     <el-row :gutter="20">
                         <el-col 
@@ -238,10 +239,22 @@ export default {
 </script>
 <style>
 .article-list .el-collapse{
-    border-top: none;
+    border: none !important;
+}
+.article-list .el-collapse .el-collapse-item.is-disabled{
+    color: #909399;
+}
+.article-list .el-collapse .el-collapse-item__header, .article-list .el-collapse .el-collapse-item__wrap{
+    background-color: transparent;
+}
+.article-list .el-collapse .el-collapse-item__content .el-card{
+    background-color: rgba(255, 255, 255, 0.75);
 }
 .article-list .el-collapse-item__content{
     padding-bottom: 0px !important;
+}
+.article-list .el-collapse .is-active .el-collapse-item__wrap, .article-list .el-collapse .el-collapse-item__header{
+    border-bottom: 1.5px dashed rgba(255, 255, 255, 0.75);
 }
 .article-list .el-collapse-item__header{
     height: 60px;
@@ -249,6 +262,15 @@ export default {
     line-height: 60px;
     padding-top: 16px;
     padding-left: 8px;
+    padding-bottom: 0;
+    transition: 0.3s;
+}
+.article-list .empty-item .el-collapse-item__header, .article-list .el-collapse-item__header{
+    padding-bottom: 16px;
+    border-bottom: 1.5px dashed rgba(255, 255, 255, 0.75);
+}
+.article-list .last-item .el-collapse-item__wrap, .article-list .last-item .el-collapse-item__header, .article-list .el-collapse .is-active .el-collapse-item__header{
+    border-bottom: 1.5px dashed transparent !important;
 }
 .article-list .el-collapse-item__content .el-row{
     padding: 16px;

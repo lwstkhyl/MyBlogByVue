@@ -654,6 +654,9 @@ aside.el-aside ul.el-menu-vertical.el-menu, aside.el-aside ul.el-menu.el-menu--i
 aside.el-aside ul.el-menu li.el-menu-item i, aside.el-aside ul.el-menu li.el-submenu i{
   color: #606266;
 }
+aside.el-aside ul.el-menu li.el-menu-item.is-active i{
+  color: #409EFF;
+}
 /* 主要内容 */
 .content-wrapper{
   width: 100%;

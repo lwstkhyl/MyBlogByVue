@@ -8,8 +8,9 @@ const defaultUserInfo = {
     userAvatar: 'https://s21.ax1x.com/2025/02/26/pE1vyj0.png',
     userURL: 'https://github.com/lwstkhyl/',
     repURL: 'https://github.com/lwstkhyl/MyBlogByVue',
-    bgi: ['https://s21.ax1x.com/2025/06/22/pVZ6KL8.jpg'],
+    bgi: ['https://s21.ax1x.com/2025/05/23/pEzB1Z4.png'],
     bgiM: ['https://s21.ax1x.com/2024/08/24/pAFJ3TI.jpg'],
+    bgiChangeTime: 60,
 }
 async function getUserInfo() {
     let res;
@@ -26,6 +27,7 @@ async function getUserInfo() {
         repURL: res.data.repURL,
         bgi: res.data.bgi,
         bgiM: res.data.bgiM,
+        bgiChangeTime: res.data.bgiChangeTime,
     }
 }
 

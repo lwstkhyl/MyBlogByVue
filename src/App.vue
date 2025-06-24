@@ -1,7 +1,5 @@
 <template>
-  <div id="app"
-    :style="`--bgi: url(${bgiURL});`"
-  >
+  <div id="app">
     <!-- 回到顶部按钮 -->
     <el-backtop 
       v-if="!$route.path.startsWith('/viewFile')"
@@ -91,6 +89,11 @@
                 placeholder="头像url"
             ></el-input>
         </el-tooltip>
+        <el-input 
+          type="number" 
+          v-model.number="userInfoForm.bgiChangeTime"
+          placeholder="背景图更换间隔(min)，为0则不更换"
+        ></el-input>
         <p>宽屏背景图</p>
         <el-row 
             v-for="(row, index) in userInfoForm.bgi"
@@ -226,7 +229,6 @@
       <el-header 
         v-if="!$route.path.startsWith('/viewFile')"
         class="header" 
-        v-show="!isMobile"
         ref="header"
       >
         <div :class="['header-content', { 'container': isDesktop }]">
@@ -291,6 +293,7 @@
 import _ from 'lodash';
 import {mapState, mapActions, mapMutations} from 'vuex';
 import {encryptPassword} from './utils/crypto'
+import {changeBgi} from './utils/animate'
 // import {getMetaInfo} from './utils/seo'
 import request from './api/request';
 import {userName} from '../config/config'
@@ -316,6 +319,7 @@ export default {
         password: ''
       },
       userInfoForm: {}, //信息表单
+      bgiIndex: 0, //用哪张背景图
       bgiURL: '', //背景图链接
     }
   },
@@ -323,6 +327,14 @@ export default {
     ...mapState('auth', {isLoggedIn: 'token', userRole: 'userRole', }),
     ...mapState('base', ['isMobileAgent', 'userInfo', ]),
   },
+  watch:{
+    bgiURL:{
+      handler(newVal, oldVal){
+        changeBgi(newVal);
+      },
+      immediate: true
+    }
+  }, 
   async mounted(){
     window.addEventListener('keydown', e => {
       if(e.keyCode === 16 || e.keyCode === 17) {
@@ -347,7 +359,11 @@ export default {
     this.isLogin();
     await this.getUserInfo();
     this.userInfoForm = _.cloneDeep(this.userInfo);
-    this.bgiURL = "https://s21.ax1x.com/2025/05/23/pEzB1Z4.png"
+    const startTime = new Date(new Date().setHours(0, 0, 0, 0));
+    this.updateBgi(startTime);
+    setInterval(()=>{
+      this.updateBgi(startTime);
+    }, 1000);
   },
   methods: {
     ...mapMutations('auth', ['LOGOUT', 'SET_TOKEN', 'SET_USER', ]),
@@ -362,6 +378,13 @@ export default {
           type: 'warning'
         }).then(this.handleLogout).catch(()=>{});
       }
+    },
+    updateBgi(startTime){
+      if(this.userInfo.bgiChangeTime){
+        this.bgiIndex = parseInt((Date.now() - startTime) / (this.userInfo.bgiChangeTime * 60 * 1000));
+      }
+      if(this.isMobile) this.bgiURL = this.userInfo.bgiM[this.bgiIndex%this.userInfo.bgiM.length];
+      else this.bgiURL = this.userInfo.bgi[this.bgiIndex%this.userInfo.bgi.length];
     },
     clickUsername(){
       if(!this.isKeydown && this.userInfo.userURL) {
@@ -427,10 +450,10 @@ export default {
       }
     },
     handleResize() { //页面尺寸变化
-      const width = window.innerWidth
-      this.isDesktop = width >= 1456
-      // this.isMobile = width < 768
-      this.isMobile = false
+      const width = window.innerWidth;
+      this.isDesktop = (width >= 1456);
+      this.isMobile = (width < 768) || this.isMobileAgent;
+      // this.isMobile = false
     },
     hover_btn(){ //鼠标移至显示隐藏侧面导航的按钮
       if(this.isMobileAgent) return;
@@ -464,6 +487,7 @@ input[aria-hidden="true"] {
 }
 /* 背景图 */
 #app::before{
+  opacity: var(--opacity);
   content: "";
   position: fixed;
   top: 0;

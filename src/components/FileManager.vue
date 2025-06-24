@@ -874,6 +874,9 @@ export default {
   border: 2px dashed #d9d9d9 !important;
   background-color: transparent;
 }
+.file-manager .el-upload-dragger:hover{
+  border-color: #409EFF !important;
+}
 .el-upload__text{
   padding-top: 20px;
 }

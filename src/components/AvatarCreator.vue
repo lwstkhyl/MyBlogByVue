@@ -381,6 +381,9 @@ export default {
   background-color: transparent;
   border: 2px dashed #d9d9d9;
 }
+.el-upload-dragger:hover{
+  border-color: #409EFF;
+}
 .container {
   display: flex;
 }

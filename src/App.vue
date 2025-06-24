@@ -582,7 +582,7 @@ aside.el-aside ul.el-menu-vertical.el-menu, aside.el-aside ul.el-menu.el-menu--i
   background-color: transparent;
 }
 .header .el-menu--horizontal>.el-menu-item, .header .el-menu--horizontal>.el-submenu .el-submenu__title, .el-menu--horizontal ul.el-menu li.el-menu-item{
-  color: #d9d9d9;
+  color: #606266;
 }
 .el-submenu__title:hover, ul.el-menu .el-menu-item{
   background-color: transparent !important;
@@ -614,7 +614,7 @@ aside.el-aside ul.el-menu-vertical.el-menu, aside.el-aside ul.el-menu.el-menu--i
   cursor: pointer;
   align-items: center;
   /* 颜色和渐变 */
-  color: #d9d9d9;
+  color: #606266;
   transition: color .3s;
   padding: 0 10px;
   z-index: 1;
@@ -652,7 +652,7 @@ aside.el-aside ul.el-menu-vertical.el-menu, aside.el-aside ul.el-menu.el-menu--i
   left: 0;
 }
 aside.el-aside ul.el-menu li.el-menu-item i, aside.el-aside ul.el-menu li.el-submenu i{
-  color: #d9d9d9;
+  color: #606266;
 }
 /* 主要内容 */
 .content-wrapper{

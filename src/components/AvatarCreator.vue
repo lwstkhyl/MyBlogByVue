@@ -420,19 +420,19 @@ export default {
 .left-panel .input-wrapper .el-upload__text .small{
   margin: 0 !important;
   font-size: 12px !important;
-  color: #909399;
+  color: #606266;
 }
 
 .left-panel .image-name{
   font-size: 12px;
-  color: #909399;
+  color: #606266;
   margin-left: 5px;
 }
 
 .right-panel {
   width: 350px;
   padding: 20px;
-  border-left: 2px solid #909399;
+  border-left: 2px solid #606266;
   display: flex;
   flex-direction: column;
   align-items: center;

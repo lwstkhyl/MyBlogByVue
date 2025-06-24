@@ -241,8 +241,15 @@ export default {
 .article-list .el-collapse{
     border: none !important;
 }
-.article-list .el-collapse .el-collapse-item.is-disabled{
-    color: #909399;
+.article-list .el-collapse .el-collapse-item{
+    border-bottom: 2px dashed rgba(255, 255, 255, 0.75) !important;
+}
+.article-list .el-collapse .el-collapse-item:last-child{
+    border-bottom: 2px dashed transparent !important;
+}
+.article-list .el-collapse
+.article-list .el-collapse .el-collapse-item.is-disabled, .article-list .el-collapse .el-collapse-item.is-disabled .el-collapse-item__header{
+    color: #606266;
 }
 .article-list .el-collapse .el-collapse-item__header, .article-list .el-collapse .el-collapse-item__wrap{
     background-color: transparent;
@@ -254,7 +261,7 @@ export default {
     padding-bottom: 0px !important;
 }
 .article-list .el-collapse .is-active .el-collapse-item__wrap, .article-list .el-collapse .el-collapse-item__header{
-    border-bottom: 1.5px dashed rgba(255, 255, 255, 0.75);
+    border-bottom: none;
 }
 .article-list .el-collapse-item__header{
     height: 60px;
@@ -267,10 +274,10 @@ export default {
 }
 .article-list .empty-item .el-collapse-item__header, .article-list .el-collapse-item__header{
     padding-bottom: 16px;
-    border-bottom: 1.5px dashed rgba(255, 255, 255, 0.75);
+    border-bottom: none;
 }
 .article-list .last-item .el-collapse-item__wrap, .article-list .last-item .el-collapse-item__header, .article-list .el-collapse .is-active .el-collapse-item__header{
-    border-bottom: 1.5px dashed transparent !important;
+    border-bottom: none !important;
 }
 .article-list .el-collapse-item__content .el-row{
     padding: 16px;

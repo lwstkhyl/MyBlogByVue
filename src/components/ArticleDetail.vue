@@ -371,7 +371,7 @@ export default {
 .article-detail .header .time{
     margin: 0 !important;
     font-size: 12px;
-    color: #909399;
+    color: #606266;
 }
 .article-detail .header .time .create-time{
     margin-right: 30px;

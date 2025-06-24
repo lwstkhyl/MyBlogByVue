@@ -886,7 +886,7 @@ export default {
 .el-upload__text .small{
   margin: 0 !important;
   font-size: 12px !important;
-  color: #909399;
+  color: #606266;
 }
 /* 文件列表 */
 .file-item {
@@ -956,12 +956,15 @@ p.loading{
   background-color: transparent !important;
   border: none !important;
 }
-/* 表头箭头颜色 */
+/* 表头字体颜色 */
+.file-manager .el-table thead .cell{
+  color: #606266;
+}
 .file-manager .el-table .sort-caret.ascending{
-  border-bottom-color: #d9d9d9;
+  border-bottom-color: #909399;
 }
 .file-manager .el-table .sort-caret.descending{
-  border-top-color: #d9d9d9;
+  border-top-color: #909399;
 }
 /* 取消多选框选中动画 */
 .el-checkbox__inner, .el-checkbox__inner::after{

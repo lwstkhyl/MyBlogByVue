@@ -930,26 +930,29 @@ p.loading{
   margin: 0 !important;
 }
 .loading i {
-    display: inline-block; 
-    height: 1em;
-    line-height: 1;
-    text-align: left;
-    vertical-align: -.25em;
-    overflow: hidden;
+  display: inline-block; 
+  height: 1em;
+  line-height: 1;
+  text-align: left;
+  vertical-align: -.25em;
+  overflow: hidden;
 }
 .loading i::before {
-    display: block;
-    content: '...\A..\A.';
-    white-space: pre-wrap;
-    animation: dot 1s infinite step-start both;
+  display: block;
+  content: '...\A..\A.';
+  white-space: pre-wrap;
+  animation: dot 1s infinite step-start both;
 }
 @keyframes dot {
     33% { transform: translateY(-2em); }
     66% { transform: translateY(-1em); }
 }
 /* 表格单元格hover */
-.el-table__body tr:hover>td{
-    background-color: hsla(201, 100%, 66%, 0.356) !important;
+.file-manager .el-table__body tr:hover>td{
+  background-color: rgba(255, 255, 255, 0.2) !important;
+}
+.file-manager .el-table__body tr.current-row>td.el-table__cell, .file-manager .el-table__body tr.selection-row>td.el-table__cell {
+  background-color: hsla(201, 100%, 66%, 0.356) !important;
 }
 /* 表格背景透明 */
 .file-manager .el-table, .file-manager .el-table th.el-table__cell, .file-manager .el-table tr, .file-manager .el-table td.el-table__cell, .file-manager .el-table::before {

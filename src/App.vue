@@ -291,6 +291,7 @@
 
 <script>
 import _ from 'lodash';
+import debounce from 'lodash.debounce'
 import {mapState, mapActions, mapMutations} from 'vuex';
 import {encryptPassword} from './utils/crypto'
 import {changeBgi} from './utils/animate'
@@ -359,11 +360,8 @@ export default {
     this.isLogin();
     await this.getUserInfo();
     this.userInfoForm = _.cloneDeep(this.userInfo);
-    const startTime = new Date(new Date().setHours(0, 0, 0, 0));
-    this.updateBgi(startTime);
-    setInterval(()=>{
-      this.updateBgi(startTime);
-    }, 1000);
+    this.updateBgi();
+    setInterval(debounce(this.updateBgi, 800), 1000);
   },
   methods: {
     ...mapMutations('auth', ['LOGOUT', 'SET_TOKEN', 'SET_USER', ]),
@@ -379,7 +377,7 @@ export default {
         }).then(this.handleLogout).catch(()=>{});
       }
     },
-    updateBgi(startTime){
+    updateBgi(startTime = new Date(new Date().setHours(0, 0, 0, 0))){
       if(this.userInfo.bgiChangeTime){
         this.bgiIndex = parseInt((Date.now() - startTime) / (this.userInfo.bgiChangeTime * 60 * 1000));
       }

@@ -963,10 +963,10 @@ p.loading{
 .file-manager .el-table thead .cell{
   color: #606266;
 }
-.file-manager .el-table .sort-caret.ascending{
+.file-manager .sort-caret.ascending{
   border-bottom-color: #909399;
 }
-.file-manager .el-table .sort-caret.descending{
+.file-manager .sort-caret.descending{
   border-top-color: #909399;
 }
 /* 取消多选框选中动画 */

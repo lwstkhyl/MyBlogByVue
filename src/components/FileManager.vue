@@ -253,7 +253,7 @@
                   @click.stop.prevent="downloadFile(row.path, row.type)"
                   v-longpress.stop.prevent="() => copyDownloadPath(row.path, row.type)"
                 >下载</el-button>
-            </el-tooltip>
+              </el-tooltip>
             <el-button 
               v-show="isShowToUser"
               type="danger" 
@@ -269,12 +269,22 @@
               :disabled="loadingStates.rename"
               @click.stop="clickRename(row.name, row.type)"
             >重命名</el-button>
+            <el-tooltip effect="dark" :open-delay="1000" v-if="can_view(row.path, row.type)==='img'">
+              <div slot="content">长按复制图片链接</div>
+              <el-button 
+                type="info" 
+                size="mini"
+                :disabled="loadingStates.delete || loadingStates.rename"
+                @click.stop.prevent="viewFile(row.path)"
+                v-longpress.stop.prevent="() => copyImgPath(row.path)"
+              >预览</el-button>
+            </el-tooltip>
             <el-button 
-              v-show="can_view(row.path, row.type)"
+              v-else-if="can_view(row.path, row.type)"
               type="info" 
               size="mini"
               :disabled="loadingStates.delete || loadingStates.rename"
-              @click.stop="viewFile(row.path)"
+              @click.stop.prevent="viewFile(row.path)"
             >预览</el-button>
           </template>
         </el-table-column>
@@ -334,6 +344,7 @@ export default {
       uploadFilesList: [], //上传文件列表
       uploadFilesListVisible: false, //上传文件列表可见性
       isDownload: true, //下载/复制下载链接
+      isPreview: true, //下载/复制预览链接
       viewImgSrc: '', //预览的图片url
       viewTxtSrc: {title:'', content:"", }, //预览的txt文件内容和标题
       visibleImg: false, //预览img
@@ -770,6 +781,10 @@ export default {
 
     //预览
     async viewFile(path) {
+      if(!this.isPreview){
+        this.isPreview = true;
+        return;
+      }
       const fileType = can_view(path);
       if(fileType === 'open'){ //在新窗口打开
         const url = this.$router.resolve({
@@ -809,7 +824,7 @@ export default {
     //单选下载
     async downloadFile(path, type) {
       if(!this.isDownload){
-        this.isDownload=true;
+        this.isDownload = true;
         return;
       }
       await this.withLoading({
@@ -839,6 +854,11 @@ export default {
         `${baseURL}/api/download/?files=${encodeURIComponent(JSON.stringify(path))}` :
         `${baseURL}/api/download/${encodeURIComponent(path)}`;
       copy(url);
+    },
+    //复制图片链接
+    copyImgPath(path){
+      this.isPreview = false;
+      copy(`${baseURL}/api/viewFile/${encodeURIComponent(path)}?time=${Date.now()}`);
     },
 
     // 多选下载

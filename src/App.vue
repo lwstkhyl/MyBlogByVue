@@ -361,7 +361,7 @@ export default {
     await this.getUserInfo();
     this.userInfoForm = _.cloneDeep(this.userInfo);
     this.updateBgi();
-    setInterval(debounce(this.updateBgi, 800), 1000);
+    setInterval(debounce(this.updateBgi, 950), 1000);
   },
   methods: {
     ...mapMutations('auth', ['LOGOUT', 'SET_TOKEN', 'SET_USER', ]),
@@ -378,6 +378,8 @@ export default {
       }
     },
     updateBgi(startTime = new Date(new Date().setHours(0, 0, 0, 0))){
+      if(document.visibilityState!=="visible") return;
+      if(this.$route.path.startsWith('/viewFile')) return;
       if(this.userInfo.bgiChangeTime){
         this.bgiIndex = parseInt((Date.now() - startTime) / (this.userInfo.bgiChangeTime * 60 * 1000));
       }

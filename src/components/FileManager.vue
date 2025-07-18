@@ -321,6 +321,7 @@ import {disableWindowScroll, enableWindowScroll} from '../utils/pageScroll';
 import {formatSize, formatTime, formatSpeed, formatTime_hms} from '../utils/formatters';
 import {getUuiD} from '../utils/utils';
 import {copy} from '../utils/copyPaste'
+import {openNewTag} from '../utils/openNewTag'
 
 export default {
   name: 'FileManager',
@@ -460,6 +461,7 @@ export default {
     handleItemClick(item, e) {
       if (item.type === 'directory') {
         e.stopPropagation();
+        if (window.event.ctrlKey) openNewTag(this.$route.fullPath);
         this.currentDir = item.path
         this.loadFiles()
       }
@@ -467,6 +469,7 @@ export default {
 
     //点击文件导航栏时更改当前目录
     navigateTo(index) {
+      if (window.event.ctrlKey) openNewTag(this.$route.fullPath);
       const parts = this.pathParts.slice(0, index + 1)
       this.currentDir = parts.join('/')
       this.loadFiles()

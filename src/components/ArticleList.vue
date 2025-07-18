@@ -9,7 +9,7 @@
         <el-button 
             v-show="userRole === 'admin'" 
             type="primary"
-            @click="$router.push('/article/upload')"
+            @click="handleUpload"
         >上传文章</el-button>
         <!-- 更改排序 -->
         <el-button 
@@ -69,7 +69,7 @@
                                 <!-- 文章信息 -->
                                 <div 
                                     class="article-info" 
-                                    :style="`padding-bottom: ${userRole === 'admin' ? '30px' : '15px'};`"
+                                    :style="`padding-bottom: ${userRole === 'admin' ? '30px' : '0px'};`"
                                 >
                                     <h3 class="title">{{ article.title }}</h3>
                                     <div class="meta">
@@ -154,6 +154,10 @@ export default {
         handleClickCard(id){
             openNewTag(`/article/${id}`);
         },
+        //上传文章
+        handleUpload(){
+            openNewTag('/article/upload');
+        },
         //刷新文章列表
         async refresh(){
             try{
@@ -222,12 +226,7 @@ export default {
         },
         //修改指定文章
         changeArticle(id){
-            this.$router.push({
-                path: `/article/${id}`,
-                query: {
-                    change: true
-                }
-            });
+            openNewTag(`/article/${id}?change=true`);
         },
     },
     watch: {

@@ -354,6 +354,11 @@ export default {
     window.addEventListener('resize', this.handleResize);
     this.handleResize();
     this.isLogin();
+    document.addEventListener('visibilitychange', () => {
+      if (document.visibilityState === 'visible') {
+        this.isLogin();
+      }
+    });
     await this.getUserInfo();
     this.userInfoForm = _.cloneDeep(this.userInfo);
     this.updateBgi();
@@ -413,7 +418,7 @@ export default {
       // window.location.reload();
     },
     handleSelect(index) { //点击导航栏跳转
-      if (window.event.ctrlKey) openNewTag(this.$route.path);
+      if (window.event.ctrlKey) openNewTag(this.$route.fullPath);
       if(this.showSidebar) this.toggleSidebar(); //关闭侧边导航
       document.documentElement.scrollTop = 0; //滚动到顶部
       this.$router.push(index);

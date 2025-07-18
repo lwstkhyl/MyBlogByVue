@@ -118,13 +118,14 @@ export default {
         userRole: {
             handler(newVal){
                 if(this.$router.currentRoute.fullPath !== '/article/upload') return;
-                if(!newVal) loginCheck.apply(this, ['ArticleUpload']);
+                if(newVal!=='admin') loginCheck.apply(this, ['ArticleUpload']);
             },
-            immediate:true,
+            // immediate:true,
         }
     },
-    mounted(){
-        this.isLogin();
+    async mounted(){
+        await this.isLogin();
+        if(this.userRole!=='admin') loginCheck.apply(this, ['ArticleUpload']);
         window.addEventListener('keyup', (e)=>{
             if(e.key === 'Escape'){
                 this.$router.push('/article');

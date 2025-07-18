@@ -48,9 +48,9 @@
                     <el-row :gutter="20">
                         <el-col 
                             v-for="article in articles" 
-                            :key="article.id"
+                            :key="article._id"
                             v-show="displayAllArticle || article.isPublished"
-                            @click.native="$router.push(`/article/${article._id}`)"
+                            @click.native="handleClickCard(article._id)"
                             :xs="24" 
                             :sm="12" 
                             :md="8"
@@ -112,6 +112,8 @@ import {mapState} from 'vuex';
 import request from '../api/request';
 import {formatTime} from '../utils/formatters';
 import {tagsListString} from '../utils/tagsList'
+import {openNewTag} from '../utils/openNewTag'
+
 export default {
     data() {
         return {
@@ -147,6 +149,10 @@ export default {
             } catch (err) {
                 this.$message.error('更改排序失败')
             }
+        },
+        //点击查看文章
+        handleClickCard(id){
+            openNewTag(`/article/${id}`);
         },
         //刷新文章列表
         async refresh(){

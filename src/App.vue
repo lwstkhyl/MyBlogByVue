@@ -295,6 +295,7 @@ import debounce from 'lodash.debounce'
 import {mapState, mapActions, mapMutations} from 'vuex';
 import {encryptPassword} from './utils/crypto'
 import {changeBgi} from './utils/animate'
+import {openNewTag} from './utils/openNewTag'
 // import {getMetaInfo} from './utils/seo'
 import request from './api/request';
 import {userName} from '../config/config'
@@ -343,11 +344,6 @@ export default {
       }
       if(e.ctrlKey && e.shiftKey && this.isLoggedIn){
         this.changeUserinfoVisible = true;
-      }
-    });
-    window.addEventListener('keyup', e => {
-      if(e.keyCode === 16 || e.keyCode === 17) {
-        this.isKeydown = false;
       }
     });
     window.addEventListener('keyup', e => {
@@ -416,12 +412,11 @@ export default {
       this.LOGOUT();
       // window.location.reload();
     },
-    handleSelect(key) { //点击导航栏跳转
+    handleSelect(index) { //点击导航栏跳转
+      if (window.event.ctrlKey) openNewTag(this.$route.path);
       if(this.showSidebar) this.toggleSidebar(); //关闭侧边导航
       document.documentElement.scrollTop = 0; //滚动到顶部
-      this.$router.push({
-        path: key,
-      });
+      this.$router.push(index);
     },
     async changeUserinfo(){
       try{

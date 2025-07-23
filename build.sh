@@ -1,0 +1,1 @@
+sed -i 's|http://localhost:3000|https://lwstkhyl.me|g' './config/config.js' && npm run build && sed -i 's|https://lwstkhyl.me|http://localhost:3000|g' './config/config.js'

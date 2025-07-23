@@ -7,6 +7,7 @@
         <!-- 隐藏/显示目录 -->
         <el-button 
             v-show="haveTitle"
+            class="showTocBtn"
             type="info"
             @click="article.showToc = !article.showToc"
         >{{article.showToc?'隐藏':'显示'}}目录</el-button>
@@ -392,6 +393,9 @@ export default {
     .toc{
         transform: translateX(-1000px);
         opacity: 0;
+    }
+    .article-detail .showTocBtn{
+        display: none;
     }
     .article-detail .article-wrapper{
         padding-left: 0 !important;

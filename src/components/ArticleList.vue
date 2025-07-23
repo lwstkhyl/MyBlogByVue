@@ -124,7 +124,7 @@ export default {
             isLoading: false, //是否正在加载文章列表
             changeTagVisible: false, //更改排序对话框
             newTag: '', //更改排序时新的排序
-            displayAllArticle: false, //是否显示全部文章（包括隐藏状态的文章）
+            displayAllArticle: true, //是否显示全部文章（包括隐藏状态的文章）
             formatTime, tagsListString
         }
     },

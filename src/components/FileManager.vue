@@ -118,6 +118,11 @@
           size="mini"
           @click="uploadFilesList = []"
         >清空列表</el-button>
+        <el-button 
+          type="info" 
+          size="mini"
+          @click="uploadFilesList = uploadFilesList.filter(file=>file.status!=='success')"
+        >只保留失败</el-button>
       </div>
     </el-dialog>
 
@@ -762,24 +767,41 @@ export default {
         value: rowIndex, 
         writable: true,
         enumerable: false
-        })
+      });
+    },
+    RowIsSelected(row){
+      return this.selectedFiles.find(c => c.rowIndex == row.rowIndex);
     },
     rowClick(row, column, event) {
-        let refsElTable = this.$refs.fileTable;
-        let findRow = this.selectedFiles.find(c => c.rowIndex == row.rowIndex);
-        if (findRow) {
-            refsElTable.toggleRowSelection(row, false);
-            return;
+      let refsElTable = this.$refs.fileTable;
+      if(window.event.shiftKey){
+        let startRowIndex; //第一个选中的行
+        if(!this.selectedFiles[0]){
+          startRowIndex = 0;
+        }else{
+          startRowIndex = this.selectedFiles[0].rowIndex;
+          this.selectedFiles.forEach(c=>{
+            if(c.rowIndex<startRowIndex) startRowIndex = c.rowIndex;
+          });
         }
-        refsElTable.toggleRowSelection(row,true);
+        const endRowIndex = row.rowIndex; //按住shift时点击的行
+        const isSelected = this.RowIsSelected(this.files[endRowIndex]); //按住shift时点击的行是否被选中
+        if(startRowIndex<endRowIndex){
+          for(let i=startRowIndex;i<=endRowIndex;i++) refsElTable.toggleRowSelection(this.files[i], !isSelected);
+        }else{
+          for(let i=endRowIndex;i<=startRowIndex;i++) refsElTable.toggleRowSelection(this.files[i], !isSelected);
+        }
+      }else{
+        refsElTable.toggleRowSelection(row, !this.RowIsSelected(row));
+      }
     },
     rowClassName({ row,  rowIndex }) {
-        let rowName = "",
-        findRow = this.selectedFiles.find(c => c.rowIndex === row.rowIndex);
-        if (findRow) {
-            rowName = "current-row "; 
-        }
-        return rowName;
+      let rowName = "",
+      findRow = this.selectedFiles.find(c => c.rowIndex === row.rowIndex);
+      if (findRow) {
+          rowName = "current-row "; 
+      }
+      return rowName;
     },
 
     //预览

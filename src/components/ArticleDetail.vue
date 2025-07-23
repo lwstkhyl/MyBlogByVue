@@ -97,7 +97,7 @@
                 @click="scrollTo(item.id)"
             >{{ item.text }}</p>
         </div>
-        <div :style="`padding-left: ${isLoading || !(haveTitle && article.showToc) ? '0' : '290px'};`">
+        <div :style="`padding-left: ${isLoading || !(haveTitle && article.showToc) ? '0' : '290px'};`" class="article-wrapper">
             <!-- 标题和时间+正在加载文字 -->
             <div class="header">
                 <p v-if="isLoading" class="loading">加载文章中<i>...</i></p>
@@ -386,5 +386,15 @@ export default {
 .article-detail header{
     position: relative;
     z-index: 2;
+}
+@media (max-width: 768px) {
+    /* 隐藏目录 */
+    .toc{
+        transform: translateX(-1000px);
+        opacity: 0;
+    }
+    .article-detail .article-wrapper{
+        padding-left: 0 !important;
+    }
 }
 </style>

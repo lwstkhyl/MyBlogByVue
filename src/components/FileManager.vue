@@ -129,15 +129,15 @@
     <!-- 刷新/新建文件夹/上传列表/下载和删除选中/总占用空间 -->
     <el-row 
       type="flex" 
-      class="row-bg" 
       justify="space-between" 
       align="middle" 
       :gutter="20"
-      style="margin-top:5px;"
+      style="margin-top:10px;"
     >
-      <el-col :span="16">
+      <el-col :span="18" class="top-btn">
         <!-- 刷新 -->
         <el-button 
+          size="medium"
           icon="el-icon-refresh" 
           :loading="loadingStates.refresh"
           :disabled="loadingStates.refresh"
@@ -146,19 +146,19 @@
         <!-- 新建文件夹 -->
         <el-button 
           v-show="isShowToUser" 
-          type="primary"
+          type="primary" size="medium"
           @click="visible = true; $nextTick(() => $refs.newFolderInput.focus())"
         >新建文件夹</el-button>
         <!-- 显示上传列表 -->
         <el-button 
           v-show="isShowToUser && uploadFilesList.length" 
-          type="info" plain
+          type="info" plain size="medium"
           @click="uploadFilesListVisible = true"
         >显示上传列表</el-button>
         <!-- 下载选中文件 -->
         <el-button 
           v-show="selectedFiles.length" 
-          type="primary" plain
+          type="primary" plain size="medium"
           :disabled="loadingStates.delete || loadingStates.download || loadingStates.rename"
           :loading="loadingStates.download"
           @click="downloadSelected"
@@ -166,13 +166,19 @@
         <!-- 删除选中文件 -->
         <el-button 
           v-show="selectedFiles.length && isShowToUser"
-          type="danger" plain
+          type="danger" plain size="medium"
           :disabled="loadingStates.delete || loadingStates.rename"
           :loading="loadingStates.delete"
           @click="handleDelete"
         >删除选中文件</el-button>
+        <!-- 删除选中文件 -->
+        <el-button 
+          v-show="selectedFiles.length && this.userRole === 'admin'"
+          type="warning" plain size="medium"
+          @click="handleChangeFilePrivate"
+        >切换隐藏/显示</el-button>
       </el-col>
-      <el-col :span="8">
+      <el-col :span="6">
         <div class="stat" v-show="isLoggedIn">
           总占用空间：<i>{{ !loadingStates.storage ? formatSize(totalSize) : '计算中...' }}</i>
         </div>
@@ -229,7 +235,10 @@
           <template v-slot="{ row }">
             <span 
               class="file-item"
-              :class="row.type === 'directory' ? 'file-item-folder' : 'file-item-document'"
+              :class="[
+                row.type === 'directory' ? 'file-item-folder' : 'file-item-document',
+                row.private ? 'hide-file' : ''
+              ]"
               @click="handleItemClick(row, $event)"
             >
               <i :class="row.type === 'directory' ? 'el-icon-folder' : 'el-icon-document'"></i>
@@ -374,10 +383,8 @@ export default {
   },
 
   watch:{
-    isLoggedIn(newVal){
-      if(newVal){
-        this.updateTotalSize();
-      }
+    userRole(newVal){
+        this.handleRefresh();
     },
     uploadFilesList:{
       deep: true,
@@ -758,6 +765,27 @@ export default {
       });
     },
 
+    //更改文件显示/隐藏
+    async handleChangeFilePrivate() {
+      try{
+        const pathList = [];
+        this.selectedFiles.forEach(({path, type}) => {
+          pathList.push({
+            path: encodeURIComponent(path),
+            type: type
+          });
+        });
+        await request.post(`/changeFilePrivate`,{
+          data: pathList
+        });
+        this.$message.success('更改成功');
+      }catch{
+        this.$message.error(`更改选中文件失败`); 
+      }
+      this.handleRefresh();
+
+    },
+
     //表格处理（点击行时选中该行）
     handleSelectionChange(files){
       this.selectedFiles = files; 
@@ -815,17 +843,17 @@ export default {
         const url = this.$router.resolve({
             path: '/viewFile',
             query: {
-                src: `${baseURL}/api/download/${encodeURIComponent(path)}`
+                src: `${baseURL}/api/download/${encodeURIComponent(path)}&token=${this.isLoggedIn}`
             }
         });
         window.open(url.href, '_blank');
       } else if(fileType === 'img'){ //图片
-        this.viewImgSrc = `${baseURL}/api/viewFile/${encodeURIComponent(path)}?time=${Date.now()}`;
+        this.viewImgSrc = `${baseURL}/api/viewFile/${encodeURIComponent(path)}?time=${Date.now()}&token=${this.isLoggedIn}`;
         this.visibleImg = true;
         disableWindowScroll();
       } else if(fileType === 'txt'){ //txt
         try{
-          const res = await request.get(`${baseURL}/api/viewFile/${encodeURIComponent(path)}?time=${Date.now()}`);
+          const res = await request.get(`${baseURL}/api/viewFile/${encodeURIComponent(path)}?time=${Date.now()}&token=${this.isLoggedIn}`);
           this.viewTxtSrc.content = res.data;
           this.viewTxtSrc.title = getFileName(path);
           this.visibleTxt = true;
@@ -858,11 +886,11 @@ export default {
           try{
             if(type === 'directory'){ //如果要下载的是目录
               window.open(
-                `${baseURL}/api/download/?files=${encodeURIComponent(JSON.stringify(path))}`
+                `${baseURL}/api/download/?files=${encodeURIComponent(JSON.stringify(path))}&token=${this.isLoggedIn}`
               );
             } else { //如果是普通单一文件
               window.open(
-                `${baseURL}/api/download/${encodeURIComponent(path)}`,
+                `${baseURL}/api/download/${encodeURIComponent(path)}?token=${this.isLoggedIn}`,
               );
             }
           } catch(err) {
@@ -876,14 +904,14 @@ export default {
     copyDownloadPath(path, type){
       this.isDownload = false;
       const url = (type === 'directory') ?
-        `${baseURL}/api/download/?files=${encodeURIComponent(JSON.stringify(path))}` :
-        `${baseURL}/api/download/${encodeURIComponent(path)}`;
+        `${baseURL}/api/download/?files=${encodeURIComponent(JSON.stringify(path))}&token=${this.isLoggedIn}` :
+        `${baseURL}/api/download/${encodeURIComponent(path)}?token=${this.isLoggedIn}`;
       copy(url);
     },
     //复制图片链接
     copyImgPath(path){
       this.isPreview = false;
-      copy(`${baseURL}/api/viewFile/${encodeURIComponent(path)}?time=${Date.now()}`);
+      copy(`${baseURL}/api/viewFile/${encodeURIComponent(path)}?time=${Date.now()}&token=${this.isLoggedIn}`);
     },
 
     // 多选下载
@@ -897,7 +925,7 @@ export default {
             }
             const paths = this.selectedFiles.map(f => f.path);
             window.open(
-              `${baseURL}/api/download/?files=${encodeURIComponent(JSON.stringify(paths))}`
+              `${baseURL}/api/download/?files=${encodeURIComponent(JSON.stringify(paths))}&token=${this.isLoggedIn}`
             );
           } catch(err) {
             this.$message.error('下载失败');
@@ -933,12 +961,25 @@ export default {
   font-size: 12px !important;
   color: #606266;
 }
+/* 上方按钮区 */
+.file-manager .top-btn{
+  display: flex;
+  flex-wrap: nowrap;
+  overflow: hidden;
+}
+.file-manager .top-btn:hover{
+  z-index: 1;
+  overflow: visible;
+}
 /* 文件列表 */
 .file-item {
   padding: 5px;
 }
 .file-item-folder{
   cursor: pointer;
+}
+.hide-file{
+  background-color: rgba(255, 255, 255, 0.3);
 }
 /* 路径导航 */
 .path-navigation{

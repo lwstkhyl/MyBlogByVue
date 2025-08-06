@@ -49,6 +49,7 @@ export default {
                 pptx:'',
             },
             viewFileSrc: this.$route.query.src,
+            viewFileName: this.$route.query.fileName,
             isLoading: false,
         }
     },
@@ -58,7 +59,7 @@ export default {
             handler(newVal){
                 if(!newVal) return;
                 this.isLoading = true;
-                const type = matchFileType(newVal)
+                const type = matchFileType(this.viewFileName);
                 this.type[type] = newVal;
             },
             immediate: true,

@@ -298,7 +298,7 @@
               type="info" 
               size="mini"
               :disabled="loadingStates.delete || loadingStates.rename"
-              @click.stop.prevent="viewFile(row.path)"
+              @click.stop.prevent="viewFile(row.path, row.name)"
             >预览</el-button>
           </template>
         </el-table-column>
@@ -355,7 +355,7 @@ export default {
       renameVisible: false, //重命名文件窗口
       renameName: '', //重命名文件名称
       renameOldName: '', //重命名前文件名称
-      renameFileIsDir: false, //重命名的文件是不是文件夹
+      renameFileType: '', //重命名的文件类型
       uploadFilesList: [], //上传文件列表
       uploadFilesListVisible: false, //上传文件列表可见性
       isDownload: true, //下载/复制下载链接
@@ -384,6 +384,12 @@ export default {
 
   watch:{
     userRole(newVal){
+        this.handleRefresh();
+    },
+    currentPath(newVal){
+        this.currentDir = newVal;
+    },
+    currentDir(newVal){
         this.handleRefresh();
     },
     uploadFilesList:{
@@ -475,7 +481,6 @@ export default {
         e.stopPropagation();
         if (window.event.ctrlKey) openNewTag(this.$route.fullPath);
         this.currentDir = item.path
-        this.loadFiles()
       }
     },
 
@@ -484,7 +489,6 @@ export default {
       if (window.event.ctrlKey) openNewTag(this.$route.fullPath);
       const parts = this.pathParts.slice(0, index + 1)
       this.currentDir = parts.join('/')
-      this.loadFiles()
     },
     
     //上传
@@ -673,7 +677,7 @@ export default {
     clickRename(name, type){
       this.renameOldName = name;
       this.renameName = name;
-      this.renameFileIsDir = (type === 'directory');
+      this.renameFileType = type;
       this.renameVisible = true; 
       this.$nextTick(() => this.$refs.renameDirInput.focus());
     },
@@ -691,7 +695,7 @@ export default {
               currentPath: this.currentPath,
               oldName: this.renameOldName,
               newName: this.renameName,
-              isDir: this.renameFileIsDir,
+              type: this.renameFileType,
             });
             this.renameVisible = false;
             this.$message.success('重命名成功');
@@ -833,7 +837,7 @@ export default {
     },
 
     //预览
-    async viewFile(path) {
+    async viewFile(path, name) {
       if(!this.isPreview){
         this.isPreview = true;
         return;
@@ -843,7 +847,8 @@ export default {
         const url = this.$router.resolve({
             path: '/viewFile',
             query: {
-                src: `${baseURL}/api/download/${encodeURIComponent(path)}&token=${this.isLoggedIn}`
+                fileName: name,
+                src: `${baseURL}/api/download/${encodeURIComponent(path)}?token=${this.isLoggedIn}`,
             }
         });
         window.open(url.href, '_blank');

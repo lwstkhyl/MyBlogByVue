@@ -76,7 +76,7 @@
             v-model="userInfoForm.repURL"
             placeholder="仓库主页"
         ></el-input>
-        <el-tooltip effect="light" :disabled="!(userInfoForm.userAvatar)">
+        <el-tooltip effect="light" :disabled="!(userInfoForm.userAvatar)" open-delay="500">
             <div slot="content">
                 <img 
                     :src="userInfoForm.userAvatar" 
@@ -101,7 +101,7 @@
             type="flex" justify="center" align="middle"
         >
             <el-col :span="20" style="display: flex; justify-content: center;">
-              <el-tooltip effect="light" :disabled="!row">
+              <el-tooltip effect="light" :disabled="!row" open-delay="500">
                 <div slot="content">
                     <img 
                         :src="userInfoForm.bgi[index]" 
@@ -132,7 +132,7 @@
             type="flex" justify="center" align="middle"
         >
             <el-col :span="20" style="display: flex; justify-content: center;">
-              <el-tooltip effect="light" :disabled="!row">
+              <el-tooltip effect="light" :disabled="!row" open-delay="500">
                 <div slot="content">
                     <img 
                         :src="userInfoForm.bgiM[index]" 
@@ -361,6 +361,8 @@ export default {
     });
     await this.getUserInfo();
     this.userInfoForm = _.cloneDeep(this.userInfo);
+    if(!this.userInfoForm.bgi.length) this.userInfoForm.bgi = [''];
+    if(!this.userInfoForm.bgiM.length) this.userInfoForm.bgiM = [''];
     this.updateBgi();
     setInterval(debounce(this.updateBgi, 950), 1000);
   },

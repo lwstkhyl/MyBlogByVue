@@ -256,9 +256,21 @@
             {{ formatTime(row.ctimeMs) }}
           </template>
         </el-table-column>
-        <el-table-column label="操作" :width="`${isShowToUser?290:200}`">
+        <el-table-column :width="`${isShowToUser?290:200}`">
+          <template slot="header">
+            <span>操作  </span>
+            <el-tooltip :open-delay="0">
+              <div slot="content">
+                下载失败的可能原因：<br/>
+                1. 文件不存在/发生改变，请刷新页面<br/>
+                2. 权限不足，请刷新页面<br/>
+                3. 下载的文件夹中包含权限不足的子文件/文件夹，请分别下载<br/>
+              </div>
+              <i class="el-icon-question download-tooltip"></i>
+            </el-tooltip>
+          </template>  
           <template v-slot="{ row }">
-              <el-tooltip effect="dark" :open-delay="1000">
+              <el-tooltip effect="dark" :open-delay="500">
                 <div slot="content">长按复制下载链接</div>
                 <el-button 
                   size="mini"
@@ -283,7 +295,7 @@
               :disabled="loadingStates.rename"
               @click.stop="clickRename(row.name, row.type)"
             >重命名</el-button>
-            <el-tooltip effect="dark" :open-delay="1000" v-if="can_view(row.path, row.type)==='img'">
+            <el-tooltip effect="dark" :open-delay="500" v-if="can_view(row.path, row.type)==='img'">
               <div slot="content">长按复制图片链接</div>
               <el-button 
                 type="info" 
@@ -984,7 +996,7 @@ export default {
   cursor: pointer;
 }
 .hide-file{
-  background-color: rgba(255, 255, 255, 0.3);
+  background-color: rgba(211, 211, 211, 0.4);
 }
 /* 路径导航 */
 .path-navigation{
@@ -1037,6 +1049,13 @@ p.loading{
 @keyframes dot {
     33% { transform: translateY(-2em); }
     66% { transform: translateY(-1em); }
+}
+/* 表头操作的说明 */
+.file-manager .download-tooltip{
+  cursor: pointer;
+}
+.file-manager .download-tooltip:hover{
+  color: #409EFF;
 }
 /* 表格单元格hover */
 .file-manager .el-table__body tr:hover>td{

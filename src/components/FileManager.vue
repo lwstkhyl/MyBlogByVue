@@ -277,7 +277,7 @@
                   :disabled="loadingStates.delete || loadingStates.download || loadingStates.rename"
                   :loading="loadingStates.download"
                   @click.stop.prevent="downloadFile(row.path, row.type)"
-                  v-longpress.stop.prevent="() => copyDownloadPath(row.path, row.type)"
+                  v-longpress.stop.prevent="() => copyDownloadPath(row.path, row.type, row.private)"
                 >下载</el-button>
               </el-tooltip>
             <el-button 
@@ -302,7 +302,7 @@
                 size="mini"
                 :disabled="loadingStates.delete || loadingStates.rename"
                 @click.stop.prevent="viewFile(row.path)"
-                v-longpress.stop.prevent="() => copyImgPath(row.path)"
+                v-longpress.stop.prevent="() => copyImgPath(row.path, row.private)"
               >预览</el-button>
             </el-tooltip>
             <el-button 
@@ -918,17 +918,19 @@ export default {
     },
 
     //复制下载链接
-    copyDownloadPath(path, type){
+    copyDownloadPath(path, type, isPrivate){
       this.isDownload = false;
+      const token = isPrivate ? `token=${this.isLoggedIn}` : '';
       const url = (type === 'directory') ?
         `${baseURL}/api/download/?files=${encodeURIComponent(JSON.stringify(path))}&token=${this.isLoggedIn}` :
-        `${baseURL}/api/download/${encodeURIComponent(path)}?token=${this.isLoggedIn}`;
+        `${baseURL}/api/download/${encodeURIComponent(path)}?${token}`;
       copy(url);
     },
     //复制图片链接
-    copyImgPath(path){
+    copyImgPath(path, isPrivate){
       this.isPreview = false;
-      copy(`${baseURL}/api/viewFile/${encodeURIComponent(path)}?time=${Date.now()}&token=${this.isLoggedIn}`);
+      const token = isPrivate ? `token=${this.isLoggedIn}` : '';
+      copy(`${baseURL}/api/viewFile/${encodeURIComponent(path)}?time=${Date.now()}&${token}`);
     },
 
     // 多选下载

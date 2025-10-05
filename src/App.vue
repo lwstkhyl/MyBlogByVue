@@ -323,6 +323,8 @@ export default {
       userInfoForm: {}, //信息表单
       bgiIndex: 0, //用哪张背景图
       bgiURL: '', //背景图链接
+      pureEdition: false, //是否为纯净模式（不显示头像/背景图）
+      pureEditionMsgTime: 1500, //模式消息框停留时间
     }
   },
   computed:{
@@ -345,6 +347,15 @@ export default {
       if(e.ctrlKey && e.shiftKey && this.isLoggedIn){
         this.changeUserinfoVisible = true;
       }
+      if(e.ctrlKey && e.keyCode === 32){
+        const pureEdition = localStorage.getItem('pureEdition') === "true";
+        localStorage.setItem('pureEdition', !pureEdition);
+        const url = new URL(window.location.href);
+        url.searchParams.delete('changePure');
+        url.searchParams.append('changePure', true);
+        url.searchParams.delete('pureEdition');
+        location.href = url.toString();
+      }
     });
     window.addEventListener('keyup', e => {
       if(e.keyCode === 16 || e.keyCode === 17) {
@@ -359,10 +370,42 @@ export default {
         this.isLogin();
       }
     });
+    if(localStorage.getItem('pureEdition') === null){ //初次进入页面
+      this.pureEditionMsgTime = 4500;
+      if(!this.$route.query.pureEdition){ //不开启纯净模式
+        localStorage.setItem('pureEdition', false);
+      }
+    }
+    if(this.$route.query.pureEdition){ //开启纯净模式
+      localStorage.setItem('pureEdition', true);
+    }
+    this.pureEdition = localStorage.getItem('pureEdition') === 'true';
     await this.getUserInfo();
     this.userInfoForm = _.cloneDeep(this.userInfo);
     if(!this.userInfoForm.bgi.length) this.userInfoForm.bgi = [''];
     if(!this.userInfoForm.bgiM.length) this.userInfoForm.bgiM = [''];
+    if(this.pureEdition){
+      this.userInfo.bgi = ['https://lwstkhyl.me/api/viewFile/%E7%BD%91%E9%A1%B5%E8%83%8C%E6%99%AF%E5%9B%BE%2FpureEdition%E4%B8%93%E7%94%A8%2Fbgi.jpg?time=1759678498987&'];
+      this.userInfo.bgiM = ['https://lwstkhyl.me/api/viewFile/%E7%BD%91%E9%A1%B5%E8%83%8C%E6%99%AF%E5%9B%BE%2FpureEdition%E4%B8%93%E7%94%A8%2FbgiM.jpg?time=1759670644588&'];
+      this.userInfo.userAvatar = 'https://lwstkhyl.me/api/viewFile/%E7%BD%91%E9%A1%B5%E8%83%8C%E6%99%AF%E5%9B%BE%2FpureEdition%E4%B8%93%E7%94%A8%2FuserAvatar.jpg?time=1759670637492&';
+      if(this.$route.query.changePure || this.pureEditionMsgTime === 4500) {
+        this.$notify({
+          title: '已开启纯净模式',
+          message: "若要切换模式，请同时按CTRL+空格",
+          duration: this.pureEditionMsgTime,
+        });
+        this.pureEditionMsgTime = 1500;
+      }
+    } else {
+      if(this.$route.query.changePure || this.pureEditionMsgTime === 4500) {
+        this.$notify({
+          title: '已关闭纯净模式',
+          message: "若要切换模式，请同时按CTRL+空格",
+          duration: this.pureEditionMsgTime,
+        });
+        this.pureEditionMsgTime = 1500;
+      }
+    }
     this.updateBgi();
     setInterval(debounce(this.updateBgi, 950), 1000);
   },

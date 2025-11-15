@@ -14,12 +14,14 @@
             @error="errorHandler"
             style="height:90vh"
         />
-        <vue-office-pdf
-            v-show="type.pdf"
-            :src="type.pdf"
-            @rendered="renderHandler"
-            @error="errorHandler"
-        />
+        <div class="pdf-container" v-show="type.pdf">
+            <vue-office-pdf
+                v-show="type.pdf"
+                :src="type.pdf"
+                @rendered="renderHandler"
+                @error="errorHandler"
+            />
+        </div>
         <vue-office-pptx
             v-show="type.pptx"
             :src="type.pptx"
@@ -79,5 +81,12 @@ export default {
 <style scoped>
 canvas.x-spreadsheet-table{
     height: 200px !important;
+}
+/* 解决pdf预览只显示前5页的问题 */
+.pdf-container{
+    height: 90vh;
+}
+.vue-office-pdf {
+    height: 100% !important;
 }
 </style>

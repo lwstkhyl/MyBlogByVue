@@ -8,6 +8,17 @@
     padding: 0 !important;
 }
 
+/* 删除线隐藏文字效果 */
+.article-detail .content p del {
+    transition: all 0.2s;
+    background-color: #606266 !important;
+    text-decoration: none !important;
+}
+
+.article-detail .content p del:hover {
+    background-color: transparent !important;
+}
+
 /* 上下文字 */
 .article-detail .content sub,
 .article-detail .content sup {

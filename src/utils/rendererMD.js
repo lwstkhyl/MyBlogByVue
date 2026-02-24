@@ -10,7 +10,7 @@ export const renderImg = ({ href, text }) => {
             width="${wh_arr[1]}px" 
             height="auto" 
             max-width="100%" 
-            src="${href}" 
+            src="${href}?time=${Date.now()}&token=${localStorage.getItem("token")}" 
             alt="${title_arr[0]}"
         >
     `;
@@ -22,7 +22,7 @@ export const extractImg = (content) => {
     const imageList = [];
     let match;
     while ((match = imgReg.exec(content)) !== null) {
-        imageList.push(match[1]);
+        imageList.push(match[1] + `?time=${Date.now()}&token=${localStorage.getItem("token")}`);
     }
     return imageList;
 };

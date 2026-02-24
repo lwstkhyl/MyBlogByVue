@@ -7,7 +7,7 @@
                     class="pointer"
                     type="textarea"
                     v-model="content"
-                    :rows="16"
+                    :rows="20"
                     placeholder="双击粘贴"
                     @dblclick.native="paste"
                 ></el-input>
@@ -17,20 +17,33 @@
                 <el-checkbox-group v-model="optionList">
                     <!-- 加换行 -->
                     <div>
-                        <el-checkbox label="加换行" border></el-checkbox>
+                        <el-tooltip effect="dark" :open-delay="1000">
+                            <div slot="content">每行之间多加一个换行符</div>
+                            <el-checkbox label="加换行" border></el-checkbox>
+                        </el-tooltip>
+                        
                     </div>
                     <!-- 改标题(5->4 6->5) -->
                     <div style="margin-top: 20px">
-                        <el-checkbox label="改标题(5->4 6->5)" border></el-checkbox>
+                        <el-tooltip effect="dark" :open-delay="1000">
+                            <div slot="content">`##### 五级标题` -> `#### 四级标题`</div>
+                            <el-checkbox label="改标题(5->4 6->5)" border></el-checkbox>
+                        </el-tooltip>
                     </div>
                     <!-- 改代码块位置 -->
                     <div style="margin-top: 20px">
-                        <el-checkbox label="改代码块位置" border></el-checkbox>
+                        <el-tooltip effect="dark" :open-delay="1000">
+                            <div slot="content">把整体缩进（比如在列表中）的代码块的tab符统一</div>
+                            <el-checkbox label="改代码块位置" border></el-checkbox>
+                        </el-tooltip>
                     </div>
                     <!-- 改图片尺寸 -->
                     <el-row style="margin-top: 20px" type="flex">
                         <el-col>
-                            <el-checkbox label="改图片尺寸" border></el-checkbox>
+                            <el-tooltip effect="dark" :open-delay="1000">
+                                <div slot="content">`{:width=300 height=300}` -> `{:width="500px" height="500px"}`</div>
+                                <el-checkbox label="改图片尺寸" border></el-checkbox>
+                            </el-tooltip>
                         </el-col>
                         <el-col style="overflow: hidden;">
                             <el-tooltip effect="dark" :open-delay="1000">
@@ -47,7 +60,10 @@
                     <!-- 改图片路径 -->
                     <el-row style="margin-top: 20px;" type="flex" justify="space-between">
                         <el-col>
-                            <el-checkbox label="改图片路径" border></el-checkbox>
+                            <el-tooltip effect="dark" :open-delay="1000">
+                                <div slot="content">`(./md-image/01.jpg)` -> `(/upload/md-image/01.jpg)`</div>
+                                <el-checkbox label="改图片路径" border></el-checkbox>
+                            </el-tooltip>
                         </el-col>
                         <el-col>
                             <el-tooltip effect="dark" :open-delay="1000">
@@ -73,7 +89,10 @@
                     <!-- 改代码类型 -->
                     <el-row style="margin-top: 20px" type="flex">
                         <el-col>
-                            <el-checkbox label="改代码类型" border></el-checkbox>
+                            <el-tooltip effect="dark" :open-delay="1000">
+                                <div slot="content">```->```html</div>
+                                <el-checkbox label="改代码类型" border></el-checkbox>
+                            </el-tooltip>
                         </el-col>
                         <el-col>
                             <el-tooltip effect="dark" :open-delay="1000">
@@ -87,6 +106,13 @@
                             </el-tooltip>
                         </el-col>
                     </el-row>
+                    <!-- 改代码块位置 -->
+                    <div style="margin-top: 20px">
+                        <el-tooltip effect="dark" :open-delay="1000">
+                            <div slot="content">`{:width="300px" height="300px"}`->`[01##w300h300]`</div>
+                            <el-checkbox label="改图片md格式" border></el-checkbox>
+                        </el-tooltip>
+                    </div>
                 </el-checkbox-group>
             </el-col>
         </el-row>
@@ -97,7 +123,7 @@
                     class="pointer"
                     type="textarea"
                     v-model="newContent"
-                    :rows="16"
+                    :rows="20"
                     placeholder="双击/长按复制"
                     @dblclick.native="copy"
                     v-longpress="copy"
@@ -183,7 +209,7 @@ export default {
         return {
             content: '',
             newContent: '',
-            optionList: ["加换行", "改标题(5->4 6->5)", "改代码块位置", '改图片尺寸', ],
+            optionList: [],
             funcArgs:{
                 codeType: '',
                 newPath: '',

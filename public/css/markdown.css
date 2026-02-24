@@ -5,18 +5,8 @@
     font-size: 16px !important;
     line-height: 26px !important;
     margin: 0 0 16px !important;
+    margin-bottom: 8px !important;
     padding: 0 !important;
-}
-
-/* 删除线隐藏文字效果 */
-.article-detail .content p del {
-    transition: all 0.2s;
-    background-color: #606266 !important;
-    text-decoration: none !important;
-}
-
-.article-detail .content p del:hover {
-    background-color: transparent !important;
 }
 
 /* 上下文字 */

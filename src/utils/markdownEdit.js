@@ -169,6 +169,29 @@ const changeCodeType = (c, { codeType }) => {
     return res;
 };
 
+//改图片markdown格式（{:width="300px" height="300px"}->##w300h300）
+const changeImgMD = (c) => {
+    let res = '';
+    const line_list = c.split('\n').map((line) => line + '\n');
+    line_list.forEach((line) => {
+        const m = line.match(/^!\[([^\]]*)\]\(([^)]+)\)\{:\s*([^}]*)\s*\}\s*$/);
+        if (!m) {
+            res += line;
+            return;
+        }
+        const [, alt, url, attrs] = m;
+        const w = (attrs.match(/width\s*=\s*["']?(\d+)(?:px)?["']?/i) || [])[1];
+        const h = (attrs.match(/height\s*=\s*["']?(\d+)(?:px)?["']?/i) || [])[1];
+        if (!w && !h) {
+            res += line;
+            return line;
+        }
+        const tag = `##${w ? `w${w}` : ""}${h ? `h${h}` : ""}`;
+        res += `![${alt}${tag}](${url})`;
+    });
+    return res;
+};
+
 //改图片路径
 const changeImgPath = (c, { newPath, oldPath }) => {
     if (!oldPath) oldPath = './md-image/';
@@ -193,6 +216,7 @@ export const funcDir = {
     "改图片尺寸": changeImgSize,
     '改图片路径': changeImgPath,
     "改代码类型": changeCodeType,
+    "改图片md格式": changeImgMD,
 };
 
 export function codeTypeList(queryString, cb) {

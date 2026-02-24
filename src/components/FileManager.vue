@@ -178,9 +178,13 @@
           @click="handleChangeFilePrivate"
         >切换隐藏/显示</el-button>
       </el-col>
-      <el-col :span="6">
-        <div class="stat" v-show="isLoggedIn">
-          总占用空间：<i>{{ !loadingStates.storage ? formatSize(totalSize) : '计算中...' }}</i>
+      <el-col :span="16">
+        <div class="stat">
+          <span v-show="selectedDirNum||selectedFileNum">已选中
+            <span v-show="selectedDirNum"><i>{{selectedDirNum}}</i>个文件夹 </span>
+            <span v-show="selectedFileNum"><i>{{selectedFileNum}}</i>个文件 </span>
+          &emsp;</span>
+          <span v-show="isLoggedIn">总占用空间：<i>{{ !loadingStates.storage ? formatSize(totalSize) : '计算中...' }}</i></span>
         </div>
       </el-col>
     </el-row>
@@ -391,6 +395,12 @@ export default {
     },
     isShowToUser(){
       return (this.isPublicDir && this.isLoggedIn) || this.userRole === 'admin';
+    },
+    selectedFileNum(){
+      return this.selectedFiles.filter(c => c.type == "file").length;
+    },
+    selectedDirNum(){
+      return this.selectedFiles.filter(c => c.type != "file").length;
     },
   },
 

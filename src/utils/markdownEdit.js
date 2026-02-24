@@ -135,7 +135,7 @@ const changeImgSize = (c, { size_map }) => {
             for (const old_size in size_map) {
                 const new_size = size_map[old_size];
                 if (line.includes(`width=${old_size}`)) {
-                    line = line.replace(`width=${old_size} height=${old_size}`, `width=${new_size} height=${new_size}`)
+                    line = line.replaceA(`width=${old_size} height=${old_size}`, `width=${new_size} height=${new_size}`)
                     break
                 }
             }
@@ -174,20 +174,14 @@ const changeImgMD = (c) => {
     let res = '';
     const line_list = c.split('\n').map((line) => line + '\n');
     line_list.forEach((line) => {
-        const m = line.match(/^!\[([^\]]*)\]\(([^)]+)\)\{:\s*([^}]*)\s*\}\s*$/);
-        if (!m) {
-            res += line;
-            return;
-        }
-        const [, alt, url, attrs] = m;
-        const w = (attrs.match(/width\s*=\s*["']?(\d+)(?:px)?["']?/i) || [])[1];
-        const h = (attrs.match(/height\s*=\s*["']?(\d+)(?:px)?["']?/i) || [])[1];
-        if (!w && !h) {
-            res += line;
-            return line;
-        }
-        const tag = `##${w ? `w${w}` : ""}${h ? `h${h}` : ""}`;
-        res += `![${alt}${tag}](${url})`;
+        const re = /!\[([^\]]*)\]\(([^)]+)\)\{:\s*([^}]*)\s*\}/g;
+        res += line.replace(re, (full, alt, url, attrs) => {
+            const w = (attrs.match(/width\s*=\s*["']?(\d+)(?:px)?["']?/i) || [])[1];
+            const h = (attrs.match(/height\s*=\s*["']?(\d+)(?:px)?["']?/i) || [])[1];
+            if (!w && !h) return full;
+            const tag = `##${w ? `w${w}` : ""}${h ? `h${h}` : ""}`;
+            return `![${alt}${tag}](${url})`;
+        });
     });
     return res;
 };
@@ -202,7 +196,7 @@ const changeImgPath = (c, { newPath, oldPath }) => {
     const line_list = c.split('\n').map((line) => line + '\n');
     line_list.forEach((line) => {
         if (is_img(line)) {
-            line = line.replace(oldPath, newPath);
+            line = line.replaceAll(oldPath, newPath);
         }
         res += line;
     });

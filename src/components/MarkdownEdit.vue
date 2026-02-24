@@ -42,7 +42,7 @@
                         <el-col>
                             <el-tooltip effect="dark" :open-delay="1000">
                                 <div slot="content">`{:width=300 height=300}` -> `{:width="500px" height="500px"}`</div>
-                                <el-checkbox label="改图片尺寸" border></el-checkbox>
+                                <el-checkbox label="改图片尺寸（弃用）" border></el-checkbox>
                             </el-tooltip>
                         </el-col>
                         <el-col style="overflow: hidden;">

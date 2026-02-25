@@ -3,6 +3,7 @@
     <h2><a :href="userInfo.userURL" target="_blank">{{userName}}</a>的个人网页</h2>
     <p>使用<strong>Vue2</strong>+<strong>express</strong>+<strong>mongodb</strong>+<strong>element-ui</strong></p>
     <p>仍在创作中，<a :href="userInfo.repURL" target="_blank">项目首页</a></p>
+    <p>备用网站：<a href="https://lwstkhyl.github.io/" target="_blank">lwstkhyl.github.io</a></p>
     <h3>使用说明</h3>
     <ul>
       <li>长按头像用户名区域：登录/退出登录</li>

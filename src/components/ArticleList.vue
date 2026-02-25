@@ -191,6 +191,9 @@ export default {
                 this.articles = [];
                 this.tagSort = [];
                 this.$message.error('获取文章列表失败')
+                if (window.confirm("获取文章列表失败，是否跳转到备用网址？")) {
+                    location.href = 'https://lwstkhyl.github.io/talk_at_night';
+                }
             }
             this.isLoading = false;
         },

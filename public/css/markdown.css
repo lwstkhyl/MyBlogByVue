@@ -1,6 +1,10 @@
+#app .article-wrapper .content {
+    padding: 20px;
+}
+
 /* 文本 */
 .article-detail .content p {
-    color: #606266 !important;
+    color: #4d4d4d !important;
     font-weight: 400 !important;
     font-size: 16px !important;
     line-height: 26px !important;
@@ -21,7 +25,7 @@
 .article-detail .content h3,
 .article-detail .content h4,
 .article-detail .content h5 {
-    color: #303133 !important;
+    color: #4f4f4f !important;
     margin: 24px 0 8px !important;
     padding: 0 !important;
     font-weight: 600 !important;
@@ -152,7 +156,7 @@
     font-size: 14px !important;
     line-height: 22px !important;
     color: #c7254e !important;
-    background-color: #f9f2f4 !important;
+    background-color: #f9f2f480 !important;
     border-radius: 2px !important;
     font-family: Source Code Pro, DejaVu Sans Mono, Ubuntu Mono, Anonymous Pro, Droid Sans Mono, Menlo, Monaco, Consolas, Inconsolata, Courier, monospace, PingFang SC, Microsoft YaHei, sans-serif !important;
     font-feature-settings: normal !important;
@@ -180,8 +184,34 @@
 
 /* 分割线样式 */
 .article-detail .content hr {
+    width: 100%;
+    background-image: linear-gradient(to bottom, transparent 50%, #a8adac 50%);
+    background-position: 0 50%;
+    background-repeat: repeat-x;
+    border: 0;
+    margin: 0;
     background-size: 100% 5px !important;
-    margin: 16px 0 !important;
+    padding-bottom: 10px !important;
+    padding-top: 10px !important;
+    margin-bottom: 8px !important;
+    box-sizing: content-box;
+    height: 0;
+    overflow: visible;
+}
+
+/* 引用样式 */
+.article-detail .content blockquote {
+    margin: 0px;
+    margin-left: -10px;
+}
+
+.article-detail .content blockquote p {
+    border-left: 3px solid #05bf85;
+    font-style: italic;
+}
+
+.article-detail .content blockquote p {
+    padding-left: 10px !important;
 }
 
 /* 代码行数 */

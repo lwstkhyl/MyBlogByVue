@@ -549,7 +549,7 @@ input[aria-hidden="true"] {
 }
 /* 页面内容区域 */
 #app .content, aside.el-aside, .header-content, i.sidebar-toggle, ul.el-menu.el-menu--popup{
-  background-color: rgba(255, 255, 255, 0.4) !important;
+  background-color: rgba(255, 255, 255, 0.6) !important;
   backdrop-filter: blur(5px) !important;
   border-radius: 5px;
 }

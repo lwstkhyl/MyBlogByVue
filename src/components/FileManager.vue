@@ -973,7 +973,7 @@ export default {
 .file-manager .el-upload-dragger{
   cursor: default !important;
   height: 180px !important;
-  border: 2px dashed #d9d9d9 !important;
+  border: 2px dashed #939393 !important;
   background-color: transparent;
 }
 .file-manager .el-upload-dragger:hover{
@@ -1008,7 +1008,7 @@ export default {
   cursor: pointer;
 }
 .hide-file{
-  background-color: rgba(211, 211, 211, 0.4);
+  background-color: rgba(211, 211, 211, 0.6);
 }
 /* 路径导航 */
 .path-navigation{

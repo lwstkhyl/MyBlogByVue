@@ -379,7 +379,7 @@ export default {
 <style scoped>
 .el-upload-dragger{
   background-color: transparent;
-  border: 2px dashed #d9d9d9;
+  border: 2px dashed #939393;
 }
 .el-upload-dragger:hover{
   border-color: #409EFF;

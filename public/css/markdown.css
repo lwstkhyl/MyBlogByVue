@@ -284,7 +284,7 @@
     top: 20%;
     overscroll-behavior: contain;
     border-radius: 5px;
-    background-color: rgba(255, 255, 255, 0.4) !important;
+    background-color: rgba(255, 255, 255, 0.6) !important;
 }
 
 .toc p {
@@ -339,5 +339,5 @@
 
 .toc:hover {
     opacity: 1;
-    background-color: rgba(255, 255, 255, 0.4);
+    background-color: rgba(255, 255, 255, 0.6);
 }

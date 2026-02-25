@@ -19,7 +19,7 @@
     </el-dialog>
 
     <!-- 重命名文件夹组件 -->
-    <el-dialog title="重命名文件夹" :visible.sync="renameVisible" :append-to-body="true">
+    <el-dialog title="重命名" :visible.sync="renameVisible" :append-to-body="true">
       <el-input 
         ref="renameDirInput"
         v-model="renameName" 

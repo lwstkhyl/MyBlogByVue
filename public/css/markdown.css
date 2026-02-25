@@ -162,6 +162,15 @@
     font-feature-settings: normal !important;
 }
 
+/* 图片最大宽度 */
+.article-detail .content p img {
+    max-width: 100%;
+}
+
+.article-wrapper .header {
+    height: auto !important;
+}
+
 /* 滚动条样式 */
 .article-detail .content pre code::-webkit-scrollbar {
     height: 8px !important;

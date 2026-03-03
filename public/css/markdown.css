@@ -253,6 +253,16 @@
     font-family: Source Code Pro, DejaVu Sans Mono, Ubuntu Mono, Anonymous Pro, Droid Sans Mono, Menlo, Monaco, Consolas, Inconsolata, Courier, monospace, PingFang SC, Microsoft YaHei, sans-serif !important;
 }
 
+/*普通文本框无行数和复制按钮 */
+.article-detail .content .code-block .no-number {
+    padding-left: 0;
+}
+
+.article-detail .content .code-block .no-number .code-copy,
+.article-detail .content .code-block .no-number .pre-numbering {
+    display: none;
+}
+
 /* 代码复制按钮 */
 .article-detail .content pre .code-copy {
     opacity: 0.1;

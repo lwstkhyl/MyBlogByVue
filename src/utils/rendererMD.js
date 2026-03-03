@@ -32,7 +32,7 @@ export const renderCode = ({ text, lang }) => {
     const highlighted = hljs.highlightAuto(text).value;
     return `
         <div class="code-block">
-            <pre>
+            <pre class="${lang ? '' : 'no-number'}">
                 <div class="code-copy">复制</div>
                 <code class="hljs ${lang}">${highlighted}</code>
             </pre>

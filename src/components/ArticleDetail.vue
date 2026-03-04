@@ -220,14 +220,18 @@ export default {
                 this.$nextTick(() => {
                     this.bindImageEvents();
                     this.generateToc();
-                    this.changeText();
                     window.removeEventListener('scroll', this.handleScroll);
                     window.addEventListener('scroll', this.handleScroll);
                     this.handleResize();
                     window.removeEventListener('resize', this.handleResize);
                     window.addEventListener('resize', this.handleResize);
                     document.querySelector('#app').appendChild(this.$refs.toc);
-                    document.body.removeChild(this.$refs.toc);
+                    try{
+                        document.body.removeChild(this.$refs.toc);
+                    } catch(err) {
+                        11;
+                    }
+                    this.evalScript();
                 });
             } catch(err) {
                 console.log(err); 
@@ -265,15 +269,12 @@ export default {
                 }
             });
         },
-        //后记篇特殊切换文本
-        changeText(){
-            const change = document.querySelector("span.change");
-            change.addEventListener('mouseenter', () => {
-                change.innerHTML = "<span>start</span><span class='space'>i</span>";
-            });
-            change.addEventListener('mouseleave', () => {
-                change.innerHTML = "<span>&nbsp;die&nbsp;</span>&nbsp;";
-            });
+        //执行script标签
+        evalScript(){
+            const scripts = document.querySelectorAll('.article-detail script');
+            scripts.forEach(script=>{
+                eval(script.innerHTML);
+            })
         },
         //目录自动滚动
         handleScroll: debounce(function(){

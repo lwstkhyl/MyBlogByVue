@@ -220,6 +220,7 @@ export default {
                 this.$nextTick(() => {
                     this.bindImageEvents();
                     this.generateToc();
+                    this.changeText();
                     window.removeEventListener('scroll', this.handleScroll);
                     window.addEventListener('scroll', this.handleScroll);
                     this.handleResize();
@@ -262,6 +263,16 @@ export default {
                     level: header.tagName.slice(1),
                     el: header,
                 }
+            });
+        },
+        //后记篇特殊切换文本
+        changeText(){
+            const change = document.querySelector("span.change");
+            change.addEventListener('mouseenter', () => {
+                change.innerHTML = "<span>start</span><span class='space'>i</span>";
+            });
+            change.addEventListener('mouseleave', () => {
+                change.innerHTML = "<span>&nbsp;die&nbsp;</span>&nbsp;";
             });
         },
         //目录自动滚动

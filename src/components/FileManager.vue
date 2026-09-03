@@ -202,18 +202,18 @@
           <template v-if="!loadingStates.fileList">
             <el-breadcrumb-item 
               v-show="pathParts.length && !loadingStates.fileList" 
-              @click.native="navigateTo(pathParts.length-2)" 
+              @click.native="navigateTo(pathParts.length-2, $event)"
               class="click-a"
             >返回上一级</el-breadcrumb-item>
             <el-breadcrumb separator=">">
               <el-breadcrumb-item 
-                @click.native="navigateTo(-1)"
+                @click.native="navigateTo(-1, $event)"
                 :class="pathParts.length ? 'click-a' : ''" 
               >全部文件</el-breadcrumb-item>
               <el-breadcrumb-item 
                 v-for="(part, index) in pathParts" 
                 :key="index"
-                @click.native="navigateTo(index)"
+                @click.native="navigateTo(index, $event)"
                 :class="(index === pathParts.length-1) ? '' : 'click-a'"
               >{{ part || '全部文件' }}</el-breadcrumb-item>
             </el-breadcrumb>
@@ -501,16 +501,24 @@ export default {
     handleItemClick(item, e) {
       if (item.type === 'directory') {
         e.stopPropagation();
-        if (window.event.ctrlKey) openNewTag(this.$route.fullPath);
-        this.currentDir = item.path
+        this.navigateToPath(item.path, e);
       }
     },
 
     //点击文件导航栏时更改当前目录
-    navigateTo(index) {
-      if (window.event.ctrlKey) openNewTag(this.$route.fullPath);
+    navigateTo(index, e) {
       const parts = this.pathParts.slice(0, index + 1)
-      this.currentDir = parts.join('/')
+      this.navigateToPath(parts.join('/'), e);
+    },
+
+    navigateToPath(path, e) {
+      if (e && (e.ctrlKey || e.metaKey)) {
+        const route = { path: '/file' };
+        if(path) route.query = { path };
+        openNewTag(this.$router.resolve(route).href);
+        return;
+      }
+      this.currentDir = path;
     },
     
     //上传

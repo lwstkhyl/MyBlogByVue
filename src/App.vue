@@ -175,6 +175,7 @@
         ref="sidebar"
       >
         <el-menu
+          ref="sidebarMenu"
           :default-active="$route.path"
           @select="handleSelect"
           menu-trigger="hover"
@@ -250,6 +251,7 @@
           </div>
           <!-- 顶部导航栏内容 -->
           <el-menu
+            ref="headerMenu"
             :default-active="$route.path"
             @select="handleSelect"
             menu-trigger="hover"
@@ -463,10 +465,20 @@ export default {
       // window.location.reload();
     },
     handleSelect(index) { //点击导航栏跳转
-      if (window.event.ctrlKey) openNewTag(this.$route.fullPath);
+      const event = window.event;
+      if (event && (event.ctrlKey || event.metaKey)) {
+        openNewTag(this.$router.resolve(index).href);
+        this.$nextTick(() => this.resetNavigationActive());
+        return;
+      }
       if(this.showSidebar) this.toggleSidebar(); //关闭侧边导航
       document.documentElement.scrollTop = 0; //滚动到顶部
       this.$router.push(index);
+    },
+    resetNavigationActive() { //恢复Ctrl/Command点击后的当前导航高亮
+      ['sidebarMenu', 'headerMenu'].forEach(ref => {
+        if(this.$refs[ref]) this.$refs[ref].activeIndex = this.$route.path;
+      });
     },
     async changeUserinfo(){
       try{

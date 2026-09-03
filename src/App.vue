@@ -302,6 +302,9 @@ import {openNewTag} from './utils/openNewTag'
 import request from './api/request';
 import {userName} from '../config/config'
 
+const BACKGROUND_IMAGE_RETRY_INTERVAL = 10 * 1000;
+const BACKGROUND_IMAGE_MAX_RETRIES = 5;
+
 export default {
   // metaInfo: getMetaInfo(),
   data() {
@@ -340,7 +343,13 @@ export default {
       },
       immediate: true
     }
-  }, 
+  },
+  created(){
+    this.backgroundImageStates = Object.create(null);
+    this.backgroundImageLoaders = Object.create(null);
+    this.backgroundImageRetryCounts = Object.create(null);
+    this.backgroundImageRetryTimers = Object.create(null);
+  },
   async mounted(){
     window.addEventListener('keydown', e => {
       if(e.keyCode === 16 || e.keyCode === 17) {
@@ -408,8 +417,16 @@ export default {
         this.pureEditionMsgTime = 1500;
       }
     }
+    this.preloadBackgroundImages();
     this.updateBgi();
     setInterval(debounce(this.updateBgi, 950), 1000);
+  },
+  beforeDestroy(){
+    Object.values(this.backgroundImageRetryTimers).forEach(timer => clearTimeout(timer));
+    Object.values(this.backgroundImageLoaders).forEach(image => {
+      image.onload = null;
+      image.onerror = null;
+    });
   },
   methods: {
     ...mapMutations('auth', ['LOGOUT', 'SET_TOKEN', 'SET_USER', ]),
@@ -425,14 +442,86 @@ export default {
         }).then(this.handleLogout).catch(()=>{});
       }
     },
+    getBackgroundImageUrls(){
+      return [...new Set([
+        ...(this.userInfo.bgi || []),
+        ...(this.userInfo.bgiM || []),
+      ].filter(url => url))];
+    },
+    preloadBackgroundImages(){
+      const urls = this.getBackgroundImageUrls();
+      Object.keys(this.backgroundImageRetryTimers).forEach(url => {
+        if(urls.includes(url)) return;
+        clearTimeout(this.backgroundImageRetryTimers[url]);
+        delete this.backgroundImageRetryTimers[url];
+        delete this.backgroundImageRetryCounts[url];
+      });
+      urls.forEach(url => this.loadBackgroundImage(url));
+    },
+    loadBackgroundImage(url){
+      const state = this.backgroundImageStates[url];
+      if(
+        state === 'loading' ||
+        state === 'loaded' ||
+        this.backgroundImageRetryTimers[url]
+      ) return;
+
+      const image = new Image();
+      this.backgroundImageStates[url] = 'loading';
+      this.backgroundImageLoaders[url] = image;
+      image.onload = () => {
+        if(this.backgroundImageLoaders[url] !== image) return;
+        this.backgroundImageStates[url] = 'loaded';
+        delete this.backgroundImageRetryCounts[url];
+        this.updateBgi();
+      };
+      image.onerror = () => {
+        if(this.backgroundImageLoaders[url] !== image) return;
+        this.backgroundImageStates[url] = 'error';
+        delete this.backgroundImageLoaders[url];
+        this.scheduleBackgroundImageRetry(url);
+      };
+      image.src = url;
+    },
+    scheduleBackgroundImageRetry(url){
+      const retryCount = this.backgroundImageRetryCounts[url] || 0;
+      if(
+        retryCount >= BACKGROUND_IMAGE_MAX_RETRIES ||
+        this.backgroundImageRetryTimers[url]
+      ) return;
+
+      this.backgroundImageRetryCounts[url] = retryCount + 1;
+      this.backgroundImageRetryTimers[url] = setTimeout(() => {
+        delete this.backgroundImageRetryTimers[url];
+        if(!this.getBackgroundImageUrls().includes(url)) return;
+        this.loadBackgroundImage(url);
+      }, BACKGROUND_IMAGE_RETRY_INTERVAL);
+    },
+    getLoadedBackground(backgrounds){
+      if(!backgrounds || !backgrounds.length) return '';
+      const expectedIndex = this.bgiIndex % backgrounds.length;
+      const expectedBackground = backgrounds[expectedIndex];
+      if(this.backgroundImageStates[expectedBackground] === 'loaded') return expectedBackground;
+      if(
+        backgrounds.includes(this.bgiURL) &&
+        this.backgroundImageStates[this.bgiURL] === 'loaded'
+      ) return this.bgiURL;
+      for(let offset = 0; offset < backgrounds.length; offset++) {
+        const index = (expectedIndex + offset) % backgrounds.length;
+        const url = backgrounds[index];
+        if(this.backgroundImageStates[url] === 'loaded') return url;
+      }
+      return '';
+    },
     updateBgi(startTime = new Date(new Date().setHours(0, 0, 0, 0))){
       if(document.visibilityState!=="visible") return;
       if(this.$route.path.startsWith('/viewFile')) return;
       if(this.userInfo.bgiChangeTime){
         this.bgiIndex = parseInt((Date.now() - startTime) / (this.userInfo.bgiChangeTime * 60 * 1000));
       }
-      if(this.isMobile) this.bgiURL = this.userInfo.bgiM[this.bgiIndex%this.userInfo.bgiM.length];
-      else this.bgiURL = this.userInfo.bgi[this.bgiIndex%this.userInfo.bgi.length];
+      const backgrounds = this.isMobile ? this.userInfo.bgiM : this.userInfo.bgi;
+      const loadedBackground = this.getLoadedBackground(backgrounds);
+      if(loadedBackground) this.bgiURL = loadedBackground;
     },
     clickUsername(){
       if(!this.isKeydown && this.userInfo.userURL) {
@@ -485,6 +574,8 @@ export default {
         this.userInfoForm.bgi = this.userInfoForm.bgi.filter(ele=>ele);
         this.userInfoForm.bgi = [...this.userInfoForm.bgi];
         await this.updateUserInfo(this.userInfoForm);
+        this.preloadBackgroundImages();
+        this.updateBgi();
         this.changeUserinfoVisible = false;
         this.$message.success('更改成功');
       } catch(err) {

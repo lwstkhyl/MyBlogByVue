@@ -458,6 +458,14 @@ export default {
             })
           } catch (err) {
             this.files = [];
+            const status = err.response && err.response.status;
+            if((status === 403 || status === 404) && this.currentDir) {
+              const parentPath = this.pathParts.slice(0, -1).join('/');
+              const reason = status === 403 ? '无访问权限' : '不存在';
+              this.$message.warning(`当前路径${reason}，已返回上一级`);
+              this.currentDir = parentPath;
+              return;
+            }
             this.emptyText = '加载失败，请重试';
             this.$message.error('加载文件列表失败')
           }

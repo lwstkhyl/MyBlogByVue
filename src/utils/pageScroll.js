@@ -16,10 +16,31 @@
 //     winX = null;
 //     winY = null;
 // }
+let scrollLockCount = 0;
+let originalOverflowY = '';
+let originalPaddingRight = '';
+
 export function disableWindowScroll() {
-    document.documentElement.style.overflowY = 'hidden'
+    scrollLockCount++;
+    if(scrollLockCount > 1) return;
+
+    const documentElement = document.documentElement;
+    const scrollbarWidth = window.innerWidth - documentElement.clientWidth;
+    originalOverflowY = documentElement.style.overflowY;
+    originalPaddingRight = documentElement.style.paddingRight;
+    documentElement.style.overflowY = 'hidden';
+
+    if(scrollbarWidth > 0) {
+        const paddingRight = parseFloat(window.getComputedStyle(documentElement).paddingRight) || 0;
+        documentElement.style.paddingRight = `${paddingRight + scrollbarWidth}px`;
+    }
 }
 
 export function enableWindowScroll() {
-    document.documentElement.style.overflowY = 'auto'
+    if(scrollLockCount === 0) return;
+    scrollLockCount--;
+    if(scrollLockCount > 0) return;
+
+    document.documentElement.style.overflowY = originalOverflowY;
+    document.documentElement.style.paddingRight = originalPaddingRight;
 }

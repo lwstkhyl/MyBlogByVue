@@ -1,10 +1,11 @@
 export const longpress = {
-    bind: function (el, binding, vNode) {
+    bind: function (el, binding) {
         if (typeof binding.value !== 'function') {
             throw 'callback must be a function'
         }
+        el.$longpressValue = binding.value
         let pressTimer = null
-        let start = (e) => {
+        const start = (e) => {
             if (e.type === 'click' && e.button !== 0) {
                 return
             }
@@ -14,15 +15,16 @@ export const longpress = {
                 }, 200)
             }
         }
-        let cancel = (e) => {
+        const cancel = () => {
             if (pressTimer !== null) {
                 clearTimeout(pressTimer)
                 pressTimer = null
             }
         }
         const handler = (e) => {
-            binding.value(e)
+            el.$longpressValue(e)
         }
+        el.$longpressHandlers = { start, cancel }
         el.addEventListener('mousedown', start)
         el.addEventListener('touchstart', start)
         el.addEventListener('click', cancel)
@@ -30,10 +32,22 @@ export const longpress = {
         el.addEventListener('touchend', cancel)
         el.addEventListener('touchcancel', cancel)
     },
-    componentUpdated(el, { value }) {
-        el.$value = value
+    update(el, binding) {
+        if (typeof binding.value !== 'function') {
+            throw 'callback must be a function'
+        }
+        el.$longpressValue = binding.value
     },
     unbind(el) {
-        el.removeEventListener('click', el.handler)
+        const { start, cancel } = el.$longpressHandlers
+        cancel()
+        el.removeEventListener('mousedown', start)
+        el.removeEventListener('touchstart', start)
+        el.removeEventListener('click', cancel)
+        el.removeEventListener('mouseout', cancel)
+        el.removeEventListener('touchend', cancel)
+        el.removeEventListener('touchcancel', cancel)
+        delete el.$longpressHandlers
+        delete el.$longpressValue
     },
 }

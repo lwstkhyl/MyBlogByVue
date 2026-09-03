@@ -323,7 +323,7 @@ export default {
       userInfoForm: {}, //信息表单
       bgiIndex: 0, //用哪张背景图
       bgiURL: '', //背景图链接
-      pureEdition: false, //是否为纯净模式（不显示头像/背景图）
+      pureEdition: true, //是否为纯净模式（不显示头像/背景图）
       pureEditionMsgTime: 1500, //模式消息框停留时间
     }
   },
@@ -372,8 +372,8 @@ export default {
     });
     if(localStorage.getItem('pureEdition') === null){ //初次进入页面
       this.pureEditionMsgTime = 4500;
-      if(!this.$route.query.pureEdition){ //不开启纯净模式
-        localStorage.setItem('pureEdition', false);
+      if(!this.$route.query.pureEdition){ //默认开启纯净模式
+        localStorage.setItem('pureEdition', true);
       }
     }
     if(this.$route.query.pureEdition){ //开启纯净模式

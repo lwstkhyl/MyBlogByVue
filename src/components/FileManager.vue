@@ -183,6 +183,7 @@
           <span v-show="selectedDirNum||selectedFileNum">已选中
             <span v-show="selectedDirNum"><i>{{selectedDirNum}}</i>个文件夹 </span>
             <span v-show="selectedFileNum"><i>{{selectedFileNum}}</i>个文件 </span>
+            总大小：<i>{{formatSize(selectedTotalSize)}}</i>
           &emsp;</span>
           <span v-show="isLoggedIn">总占用空间：<i>{{ !loadingStates.storage ? formatSize(totalSize) : '计算中...' }}</i></span>
         </div>
@@ -252,7 +253,7 @@
         </el-table-column>
         <el-table-column prop="size" label="大小" width="100" sortable>
           <template v-slot="{ row }">
-            {{ row.type === 'directory' ? '-' : formatSize(row.size) }}
+            {{ formatSize(row.size) }}
           </template>
         </el-table-column>
         <el-table-column prop="ctimeMs" label="修改时间" width="160" sortable>
@@ -353,6 +354,8 @@ import {getUuiD} from '../utils/utils';
 import {copy} from '../utils/copyPaste'
 import {openNewTag} from '../utils/openNewTag'
 
+const MULTIPLE_DOWNLOAD_SIZE_LIMIT = 1024 * 1024 * 1024;
+
 export default {
   name: 'FileManager',
   props: ['currentPath'],
@@ -401,6 +404,9 @@ export default {
     },
     selectedDirNum(){
       return this.selectedFiles.filter(c => c.type != "file").length;
+    },
+    selectedTotalSize(){
+      return this.selectedFiles.reduce((total, file) => total + (Number(file.size) || 0), 0);
     },
   },
 
@@ -961,11 +967,18 @@ export default {
 
     // 多选下载
     async downloadSelected() {
+      if(!this.selectedFiles.length) return;
+      const isSingleFile = this.selectedFiles.length === 1 && this.selectedFiles[0].type !== 'directory';
+      if(!isSingleFile && this.selectedTotalSize > MULTIPLE_DOWNLOAD_SIZE_LIMIT) {
+        return this.$message.error(
+          `多文件下载总大小不能超过1 GB（当前${formatSize(this.selectedTotalSize)}）`
+        );
+      }
       await this.withLoading({
         type: 'download',
         fn: () => {
           try{
-            if (this.selectedFiles.length === 1 && this.selectedFiles[0].type !== 'directory') {
+            if (isSingleFile) {
               return this.downloadFile(this.selectedFiles[0].path);
             }
             const paths = this.selectedFiles.map(f => f.path);

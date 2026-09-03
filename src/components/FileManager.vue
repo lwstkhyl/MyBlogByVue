@@ -227,6 +227,7 @@
         ref="fileTable"
         @selection-change="handleSelectionChange"
         style="width: 100%"
+        @mousedown.native="preventModifiedTextSelection"
         @row-click="rowClick"  
         :row-style="rowStyle" 
         :row-class-name="rowClassName"
@@ -281,7 +282,7 @@
                   size="mini"
                   :disabled="loadingStates.delete || loadingStates.download || loadingStates.rename"
                   :loading="loadingStates.download"
-                  @click.stop.prevent="downloadFile(row.path, row.type)"
+                  @click.stop.prevent="downloadFile(row.path, row.type, row.size)"
                   v-longpress.stop.prevent="() => copyDownloadPath(row.path, row.type, row.private)"
                 >下载</el-button>
               </el-tooltip>
@@ -884,6 +885,13 @@ export default {
     handleSelectionChange(files){
       this.selectedFiles = files; 
     },
+    preventModifiedTextSelection(event){
+      if(event.button !== 0 || !(event.shiftKey || event.ctrlKey || event.metaKey)) return;
+      if(event.target.closest('button, input, label, a, textarea, select')) return;
+      event.preventDefault();
+      const selection = window.getSelection();
+      if(selection) selection.removeAllRanges();
+    },
     rowStyle({row,rowIndex}) {
       Object.defineProperty(row, 'rowIndex', {
         value: rowIndex, 
@@ -896,7 +904,7 @@ export default {
     },
     rowClick(row, column, event) {
       let refsElTable = this.$refs.fileTable;
-      if(window.event.shiftKey){
+      if(event.shiftKey){
         let startRowIndex; //第一个选中的行
         if(!this.selectedFiles[0]){
           startRowIndex = 0;
@@ -1021,10 +1029,15 @@ export default {
     },
 
     //单选下载
-    async downloadFile(path, type) {
+    async downloadFile(path, type, size) {
       if(!this.isDownload){
         this.isDownload = true;
         return;
+      }
+      if(type === 'directory' && Number(size) > MULTIPLE_DOWNLOAD_SIZE_LIMIT) {
+        return this.$message.error(
+          `文件夹下载总大小不能超过1GB（当前${formatSize(Number(size))}）`
+        );
       }
       await this.withLoading({
         type: 'download',

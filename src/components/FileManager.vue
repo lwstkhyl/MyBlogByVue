@@ -327,13 +327,51 @@
       :url-list="[viewImgSrc]"
       :on-close="closeImgViewer"
     />
-    <!-- txt预览 -->
-    <el-dialog title="txt预览" :visible.sync="visibleTxt" class="txt-viewer" :append-to-body="true">
+    <!-- 文本预览 -->
+    <el-dialog
+      title="文本预览"
+      :visible.sync="visibleTxt"
+      class="txt-viewer"
+      :append-to-body="true"
+      :close-on-click-modal="!savingTxt"
+      :close-on-press-escape="!savingTxt"
+      :show-close="!savingTxt"
+      @closed="resetTxtEditor"
+    >
       <h3>文件名：{{viewTxtSrc.title}}</h3>
-      <div style="white-space: pre-wrap;">{{ viewTxtSrc.content }}</div>
+      <el-input
+        v-if="isEditingTxt"
+        v-model="editTxtContent"
+        type="textarea"
+        :rows="18"
+      ></el-input>
+      <div v-else class="txt-preview-content">{{ viewTxtSrc.content }}</div>
       <div slot="footer" style="text-align: center;">
-        <el-button 
-          type="primary" 
+        <el-button
+          :disabled="savingTxt"
+          @click="copyTxtContent"
+        >复制全文</el-button>
+        <el-button
+          v-if="canEditTxt && !isEditingTxt"
+          type="warning"
+          @click="startTxtEdit"
+        >修改</el-button>
+        <el-button
+          v-if="isEditingTxt"
+          :disabled="savingTxt"
+          @click="cancelTxtEdit"
+        >取消修改</el-button>
+        <el-button
+          v-if="isEditingTxt"
+          type="primary"
+          :loading="savingTxt"
+          :disabled="savingTxt"
+          @click="saveTxtFile"
+        >完成</el-button>
+        <el-button
+          v-if="!isEditingTxt"
+          type="primary"
+          :disabled="savingTxt"
           @click="closeTxtViewer"
         >关闭</el-button>
       </div>
@@ -380,7 +418,10 @@ export default {
       isDownload: true, //下载/复制下载链接
       isPreview: true, //下载/复制预览链接
       viewImgSrc: '', //预览的图片url
-      viewTxtSrc: {title:'', content:"", }, //预览的txt文件内容和标题
+      viewTxtSrc: {title:'', content:'', path:'', }, //预览的文本文件
+      editTxtContent: '', //正在编辑的文本内容
+      isEditingTxt: false, //是否正在编辑文本
+      savingTxt: false, //是否正在保存文本
       visibleImg: false, //预览img
       visibleTxt: false, //预览txt
       formatSize, formatTime, formatSpeed, formatTime_hms, //格式化函数
@@ -407,6 +448,11 @@ export default {
     },
     selectedTotalSize(){
       return this.selectedFiles.reduce((total, file) => total + (Number(file.size) || 0), 0);
+    },
+    canEditTxt(){
+      if(!this.viewTxtSrc.path) return false;
+      if(this.userRole === 'admin') return true;
+      return Boolean(this.isLoggedIn) && this.viewTxtSrc.path.startsWith('public/');
     },
   },
 
@@ -902,9 +948,19 @@ export default {
         disableWindowScroll();
       } else if(fileType === 'txt'){ //txt
         try{
-          const res = await request.get(`${baseURL}/api/viewFile/${encodeURIComponent(path)}?time=${Date.now()}&token=${this.isLoggedIn}`);
-          this.viewTxtSrc.content = res.data;
-          this.viewTxtSrc.title = getFileName(path);
+          const res = await request.get(
+            `${baseURL}/api/viewFile/${encodeURIComponent(path)}?time=${Date.now()}&token=${this.isLoggedIn}`,
+            {
+              responseType: 'text',
+              transformResponse: [data => data],
+            }
+          );
+          this.viewTxtSrc = {
+            content: res.data,
+            title: getFileName(path),
+            path,
+          };
+          this.resetTxtEditor();
           this.visibleTxt = true;
         }catch(err){
           this.$message.error('无法获取该文件');
@@ -920,7 +976,48 @@ export default {
     },
     //关闭txt预览窗口
     closeTxtViewer(){
+      if(this.savingTxt) return;
       this.visibleTxt = false;
+    },
+    copyTxtContent(){
+      copy(this.isEditingTxt ? this.editTxtContent : this.viewTxtSrc.content);
+    },
+    startTxtEdit(){
+      this.editTxtContent = this.viewTxtSrc.content;
+      this.isEditingTxt = true;
+    },
+    cancelTxtEdit(){
+      if(this.savingTxt) return;
+      this.editTxtContent = this.viewTxtSrc.content;
+      this.isEditingTxt = false;
+    },
+    resetTxtEditor(){
+      this.editTxtContent = '';
+      this.isEditingTxt = false;
+    },
+    async saveTxtFile(){
+      if(this.savingTxt || !this.canEditTxt) return;
+      if(this.editTxtContent === this.viewTxtSrc.content) {
+        this.isEditingTxt = false;
+        return this.$message.info('文件内容未修改');
+      }
+
+      this.savingTxt = true;
+      try {
+        await request.put(`/text/${encodeURIComponent(this.viewTxtSrc.path)}`, {
+          content: this.editTxtContent,
+        });
+        this.viewTxtSrc.content = this.editTxtContent;
+        this.isEditingTxt = false;
+        this.$message.success('文件保存成功');
+        this.handleRefresh();
+      } catch (err) {
+        const data = err.response && err.response.data;
+        const error = data && (data.error || data);
+        this.$message.error(`文件保存失败${error ? `：${error}` : ''}`);
+      } finally {
+        this.savingTxt = false;
+      }
     },
 
     //单选下载
@@ -1131,5 +1228,9 @@ p.loading{
 }
 .txt-viewer .el-dialog__body{
   padding-top: 0;
+}
+.txt-preview-content{
+  white-space: pre-wrap;
+  overflow-wrap: anywhere;
 }
 </style>

@@ -15,6 +15,7 @@ import ArticleList from "../components/ArticleList.vue"
 import ArticleDetail from "../components/ArticleDetail.vue"
 import ArticleUpload from "../components/ArticleUpload.vue"
 import MarkdownEdit from "../components/MarkdownEdit.vue"
+import UserManager from "../components/UserManager.vue"
 const router = new VueRouter({
     mode: 'history',
     routes: [
@@ -68,6 +69,12 @@ const router = new VueRouter({
             path: '/article/:id',
             component: ArticleDetail,
             meta: { title: '文章详情页' },
+        },
+        {
+            name: 'users',
+            path: '/users',
+            component: UserManager,
+            meta: { title: '账号管理' },
         },
     ]
 })

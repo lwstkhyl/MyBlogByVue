@@ -321,6 +321,7 @@ export default {
       visible: false, //登录弹窗是否弹出
       loading: false, //是否正在登录状态
       changeUserinfoVisible: false, //修改信息对话框
+      userManagerPreviousRoute: '', //快捷键进入账号管理前的页面
       form: { //登录的表单数据
         username: '',
         password: ''
@@ -357,6 +358,24 @@ export default {
       }
       if(e.ctrlKey && e.shiftKey && this.isLoggedIn){
         this.changeUserinfoVisible = true;
+      }
+      if(
+        !e.repeat &&
+        e.ctrlKey &&
+        e.altKey &&
+        (e.key === 'Control' || e.key === 'Alt') &&
+        this.isLoggedIn
+      ){
+        e.preventDefault();
+        this.showSidebar = false;
+        if(this.$route.path === '/users') {
+          const previousRoute = this.userManagerPreviousRoute || '/';
+          this.userManagerPreviousRoute = '';
+          this.$router.push(previousRoute);
+        } else {
+          this.userManagerPreviousRoute = this.$route.fullPath;
+          this.$router.push('/users');
+        }
       }
       if(e.ctrlKey && e.keyCode === 32){
         const pureEdition = localStorage.getItem('pureEdition') === "true";

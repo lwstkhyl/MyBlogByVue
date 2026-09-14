@@ -24,6 +24,8 @@
             style="float: right;"
         ></el-button>
         <!-- 修改文章对话框 -->
+        <article-music v-if="active && !isLoading && id === $route.params.id && article.bgm && article.bgm.length"
+            :key="id + ':' + musicToken" :tracks="article.bgm" />
         <el-dialog 
             title="修改文章" 
             :visible.sync="changeArticleVisible"
@@ -77,6 +79,7 @@
                 :rows="15"
                 placeholder="内容"
             ></el-input>
+            <music-picker v-model="changeArticleForm.bgm" />
             <div slot="footer" style="text-align: center;">
                 <el-button 
                     type="primary" 
@@ -163,10 +166,14 @@ import {deepClone} from '../utils/deepClone'
 import {tagsList} from '../utils/tagsList'
 import {loginCheck} from '../utils/loginCheck'
 import {userName} from '../../config/config'
+import MusicPicker from './MusicPicker.vue';
+import ArticleMusic from './ArticleMusic.vue';
 export default {
     data() {
         return {
             article: {}, //文章
+            active: false,
+            articleRequest: 0,
             contentHTML: '', //转换后文章内容
             isLoading: false, //正在加载文章内容
             id: '', //文章id
@@ -181,10 +188,12 @@ export default {
         }
     },
     components: {
+        MusicPicker, ArticleMusic,
         'el-image-viewer': () => import('element-ui/packages/image/src/image-viewer')
     },
     computed: {
         ...mapState('auth', { userRole: 'userRole', }),
+        ...mapState('auth', { musicToken: 'token' }),
         showToc(){ //是否显示目录
             return this.haveTitle && this.article.showToc;
         },
@@ -193,15 +202,21 @@ export default {
         ...mapActions('auth', ['isLogin', ]),
         //加载文章内容
         async refresh(){
+            const articleId = this.$route.params.id;
+            const requestId = ++this.articleRequest;
             idArr = []; //重置标题数组
             try{ //获取文章内容，初始化变量
                 this.isLoading = true;
-                const res = await request.get(`/article/${this.$route.params.id}`);
+                const res = await request.get(`/article/${articleId}`);
+                if(requestId !== this.articleRequest || !this.active) return;
                 this.article = res.data;
-                this.id = this.$route.params.id;
+                this.article.bgm = Array.isArray(res.data.bgm) ? res.data.bgm : [];
+                this.id = articleId;
                 this.changeArticleForm = deepClone(this.article);
+                this.changeArticleForm.bgm = [...this.article.bgm];
                 document.title = `${userName} - ${this.article.title}`;
             } catch(err) {
+                if(requestId !== this.articleRequest || !this.active) return;
                 this.article = {};
                 this.id = '';
                 this.changeArticleForm = {};
@@ -356,8 +371,15 @@ export default {
         },
     },
     async activated() {
+        this.active = true;
         await this.refresh();
         if(this.$route.query.change) this.changeArticleVisible = true;
+    },
+    deactivated(){ this.active = false; this.articleRequest++; },
+    watch: {
+        '$route.params.id'(id){
+            if(this.active && this.$route.name === 'articleDetail' && id !== this.id) this.refresh();
+        },
     },
 }
 </script>

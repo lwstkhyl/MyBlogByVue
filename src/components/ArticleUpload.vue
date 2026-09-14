@@ -54,6 +54,9 @@
             <el-form-item label="显示目录？" prop="showToc">
                 <el-checkbox label="√" v-model="form.showToc" border></el-checkbox>
             </el-form-item>
+            <el-form-item label="背景音乐" prop="bgm">
+                <music-picker v-model="form.bgm" />
+            </el-form-item>
             <el-button type="primary" @click="submitForm">提交</el-button>
         </el-form>
     </div>
@@ -65,7 +68,9 @@ import request from '../api/request';
 import {deepClone} from '../utils/deepClone'
 import {loginCheck} from '../utils/loginCheck'
 import {tagsList} from '../utils/tagsList'
+import MusicPicker from './MusicPicker.vue';
 export default {
+    components: { MusicPicker },
     data() {
         return {
             form: {
@@ -79,8 +84,9 @@ export default {
                 updateTime: Date.now(),
                 sortID: 0,
                 showToc: true,
+                bgm: [],
             }, //表单项
-            initForm: deepClone(this.form), //初始表单
+            initForm: {}, //初始表单
             rules: {
                 title: [{ required: true, message: '请输入标题'}],
                 content: [{ required: true, message: '请输入内容'}],
@@ -92,6 +98,7 @@ export default {
     computed: {
         ...mapState('auth', { userRole: 'userRole', }),
     },
+    created(){ this.initForm = { ...this.form, bgm: [] }; },
     methods: {
         ...mapActions('auth', ['isLogin', ]),
         //提交表单
@@ -100,7 +107,7 @@ export default {
                 if (valid) {
                     try {
                         await request.post('/article', this.form);
-                        this.form = deepClone(this.initForm); //恢复表单
+                        this.form = { ...this.initForm, bgm: [], createTime: Date.now(), updateTime: Date.now() }; //恢复表单
                         this.$router.push({
                             path: '/article',
                             query: {

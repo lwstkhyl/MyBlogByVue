@@ -41,6 +41,7 @@
 <script>
 import { mapState } from 'vuex';
 import { baseURL } from '../../config/config';
+const PLAY_STATE_KEY = 'articleBgmPlaying';
 export default {
   props: { tracks: { type: Array, required: true } },
   data(){
@@ -69,7 +70,13 @@ export default {
     document.body.appendChild(this.$el);
     document.addEventListener('click', this.handleDocumentClick);
     window.addEventListener('scroll', this.handleScroll, true);
-    this.notice = this.$notify({ title: '文章背景音乐', message: 'BGM 已关闭，点击右下角音乐按钮开启。', duration: 4500 });
+    const resumePlaying = localStorage.getItem(PLAY_STATE_KEY) === 'true';
+    this.notice = this.$notify({
+      title: '文章背景音乐',
+      message: resumePlaying ? '正在延续上篇文章的 BGM 播放状态。' : 'BGM 已关闭，点击右下角音乐按钮开启。',
+      duration: 4500,
+    });
+    if(resumePlaying) this.play();
   },
   beforeDestroy(){
     document.removeEventListener('click', this.handleDocumentClick);
@@ -151,20 +158,24 @@ export default {
     async play(){
       const request = ++this.playRequest;
       this.message = '';
-      this.wantsPlay = true;
+      this.setPlayState(true);
       try { await this.$refs.audio[this.currentIndex].play(); }
       catch(err) {
         if(this.stopped || request !== this.playRequest) return;
         if(err.name === 'NotAllowedError') {
-          this.wantsPlay = false;
+          this.setPlayState(false);
           this.message = '请点击播放按钮允许播放音乐';
         } else if(err.name !== 'AbortError') this.failed(this.currentIndex);
       }
     },
+    setPlayState(wantsPlay){
+      this.wantsPlay = wantsPlay;
+      localStorage.setItem(PLAY_STATE_KEY, String(wantsPlay));
+    },
     toggle(){
       if(this.wantsPlay) {
         this.playRequest++;
-        this.wantsPlay = false;
+        this.setPlayState(false);
         this.$refs.audio[this.currentIndex].pause();
       } else this.play();
     },
@@ -206,7 +217,7 @@ export default {
         const index = (this.currentIndex + direction * offset + this.tracks.length) % this.tracks.length;
         if(this.states[index] !== 'error') { this.selectTrack(index); return; }
       }
-      this.wantsPlay = false;
+      this.setPlayState(false);
       this.playing = false;
       this.playRequest++;
     },

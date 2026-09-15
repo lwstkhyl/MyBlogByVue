@@ -52,13 +52,14 @@ const realArticlePath = process.argv[4];
     await page.waitForSelector('.article-music');
     await page.waitForFunction(() => document.querySelector('audio')?.readyState >= 3);
     assert(await page.locator('audio').evaluateAll(nodes => nodes.every(a => a.paused)), '进入文章不自动播放');
-    await page.getByRole('button', { name: '展开背景音乐播放器', exact: true }).click();
-    await page.getByRole('button', { name: '播放', exact: true }).click();
+    await page.locator('.article-music > .el-button').click();
     await page.waitForFunction(() => !document.querySelector('audio').paused);
+    assert.equal(await page.evaluate(() => localStorage.getItem('articleBgmPlaying')), 'true', '播放时应保存播放状态');
     await page.getByRole('button', { name: '下一首', exact: true }).click();
     await page.waitForFunction(() => !document.querySelectorAll('audio')[1].paused && document.querySelector('audio').paused);
     await page.getByRole('button', { name: '暂停', exact: true }).click();
     assert(await page.locator('audio').evaluateAll(nodes => nodes.every(a => a.paused)));
+    assert.equal(await page.evaluate(() => localStorage.getItem('articleBgmPlaying')), 'false', '暂停时应保存暂停状态');
     await page.getByRole('button', { name: '播放', exact: true }).click();
     await page.waitForFunction(() => document.querySelectorAll('audio')[1].duration > 0);
     await page.locator('audio').nth(1).evaluate(audio => { audio.currentTime = audio.duration - 0.1; });
@@ -66,18 +67,24 @@ const realArticlePath = process.argv[4];
     // 保存真实 DOM 对象，验证 keep-alive 切出页面后音频停止并移除资源。
     await page.evaluate(() => { window.testAudio = [...document.querySelectorAll('audio')]; document.querySelector('#app').__vue__.$router.push('/'); });
     await page.waitForFunction(() => window.testAudio.every(audio => audio.paused && !audio.getAttribute('src')));
+    assert.equal(await page.evaluate(() => localStorage.getItem('articleBgmPlaying')), 'true', '离开文章时应保留播放偏好');
     const navigate = async path => {
       await page.evaluate(path => { document.querySelector('#app').__vue__.$router.push(path); }, path);
       await page.waitForURL('**' + path);
     };
     await navigate('/article/layout-test');
     await page.waitForSelector('.article-music');
+    await page.waitForFunction(() => [...document.querySelectorAll('audio')].some(audio => !audio.paused));
+    assert.equal(await page.evaluate(() => localStorage.getItem('articleBgmPlaying')), 'true', '其它文章应延续播放状态');
     const musicLayout = await page.locator('.article-music').evaluate(element => {
       const rect = element.getBoundingClientRect();
       return { parent: element.parentElement.tagName, top: rect.top, right: rect.right, bottom: rect.bottom };
     });
     assert.equal(musicLayout.parent, 'BODY', '播放器应脱离带 backdrop-filter 的文章容器');
     assert(musicLayout.top >= 0 && musicLayout.bottom <= 720 && musicLayout.right <= 1280, '长文章的音乐按钮应处于当前视口内');
+    await page.locator('.article-music > .el-button').click();
+    await page.waitForFunction(() => [...document.querySelectorAll('audio')].every(audio => audio.paused));
+    assert.equal(await page.evaluate(() => localStorage.getItem('articleBgmPlaying')), 'false', '其它文章暂停后应更新播放状态');
     await navigate('/article/empty-test');
     await page.waitForSelector('.article-detail .title');
     assert.equal(await page.locator('.article-music').count(), 0);
@@ -122,7 +129,7 @@ const realArticlePath = process.argv[4];
       assert(realMusicLayout.top >= 0 && realMusicLayout.bottom <= 720 && realMusicLayout.right <= 1280, '真实文章的音乐按钮应处于当前视口内');
     }
     assert.deepEqual(errors, [], '浏览器运行时错误');
-    console.log('PASS: real music 206, fixed viewport layout, preload, no autoplay, play/pause, next, loop, leave cleanup, legacy article, failed tracks, edit/create payloads');
+    console.log('PASS: real music 206, fixed viewport layout, preload, persisted play/pause, next, loop, leave cleanup, legacy article, failed tracks, edit/create payloads');
   } catch(error) {
     console.error('Page URL:', page.url(), 'Runtime errors:', errors);
     throw error;
